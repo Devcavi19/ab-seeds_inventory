@@ -1,7 +1,8 @@
-import { openDb } from './db.js';
+import { createDb, ensureReady } from './db.js';
 import { createApp } from './app.js';
 
-const db = openDb();
+const db = createDb();
+await ensureReady(db);
 const app = createApp(db);
 const port = Number(process.env.PORT || 3001);
 

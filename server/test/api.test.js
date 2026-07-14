@@ -1,13 +1,16 @@
-import { test, beforeEach } from 'node:test';
+import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
-import { openDb } from '../src/db.js';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { rmSync } from 'node:fs';
+import { createDb, ensureReady } from '../src/db.js';
 import { createApp } from '../src/app.js';
 
 process.env.ADMIN_USERNAME = 'admin';
 process.env.ADMIN_PASSWORD = 'admin-pass';
 
-let db, app, adminToken;
+let db, app, adminToken, dbPath;
 
 async function login(username, password) {
   const res = await request(app).post('/api/auth/login').send({ username, password });
@@ -19,6 +22,10 @@ async function createUser(username, password, role) {
     .post('/api/users')
     .set('Authorization', `Bearer ${adminToken}`)
     .send({ username, password, role });
+}
+
+async function row(sql, ...args) {
+  return (await db.execute({ sql, args })).rows[0];
 }
 
 function itemPayload(overrides = {}) {
@@ -37,9 +44,21 @@ function itemPayload(overrides = {}) {
 }
 
 beforeEach(async () => {
-  db = openDb(':memory:');
+  // A real temp file (rather than :memory:) so the extra connections libsql
+  // opens for interactive transactions see the same data as the main client,
+  // and each test gets a fully isolated database.
+  dbPath = join(tmpdir(), `ab-seeds-test-${crypto.randomUUID()}.db`);
+  db = createDb(`file:${dbPath}`);
+  await ensureReady(db);
   app = createApp(db);
   adminToken = (await login('admin', 'admin-pass')).body.token;
+});
+
+afterEach(() => {
+  db.close();
+  for (const suffix of ['', '-wal', '-shm']) {
+    rmSync(dbPath + suffix, { force: true });
+  }
 });
 
 test('login succeeds with valid credentials and returns role', async () => {
@@ -58,7 +77,7 @@ test('disabled user cannot log in and existing token is revoked', async () => {
   await createUser('worker', 'secret123', 'user');
   const workerToken = (await login('worker', 'secret123')).body.token;
 
-  const workerId = db.prepare("SELECT id FROM users WHERE username = 'worker'").get().id;
+  const workerId = (await row("SELECT id FROM users WHERE username = 'worker'")).id;
   const patch = await request(app)
     .patch(`/api/users/${workerId}`)
     .set('Authorization', `Bearer ${adminToken}`)
@@ -73,7 +92,7 @@ test('disabled user cannot log in and existing token is revoked', async () => {
 test('password reset bumps token_version and kills old JWT', async () => {
   await createUser('worker', 'secret123', 'user');
   const oldToken = (await login('worker', 'secret123')).body.token;
-  const workerId = db.prepare("SELECT id FROM users WHERE username = 'worker'").get().id;
+  const workerId = (await row("SELECT id FROM users WHERE username = 'worker'")).id;
 
   await request(app)
     .patch(`/api/users/${workerId}`)
@@ -111,7 +130,7 @@ test('sync push item + movement, pull from 0 returns them with correct qty', asy
   assert.equal(push.body.items.length, 1);
   assert.equal(push.body.movements.length, 2);
 
-  const qty = db.prepare('SELECT current_qty FROM items WHERE id = ?').get(item.id).current_qty;
+  const qty = Number((await row('SELECT current_qty FROM items WHERE id = ?', item.id)).current_qty);
   assert.equal(qty, 42);
   // Movement attribution comes from the JWT, not the payload.
   assert.equal(push.body.movements[0].username, 'admin');
@@ -128,9 +147,9 @@ test('re-pushing the same movement UUID is idempotent', async () => {
 
   await send();
   await send();
-  const qty = db.prepare('SELECT current_qty FROM items WHERE id = ?').get(item.id).current_qty;
+  const qty = Number((await row('SELECT current_qty FROM items WHERE id = ?', item.id)).current_qty);
   assert.equal(qty, 10);
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM movements').get().n, 1);
+  assert.equal(Number((await row('SELECT COUNT(*) AS n FROM movements')).n), 1);
 });
 
 test('LWW: newer updatedAt wins regardless of arrival order', async () => {
@@ -146,7 +165,7 @@ test('LWW: newer updatedAt wins regardless of arrival order', async () => {
 
   await push(newer);
   const res = await push(older);
-  const name = db.prepare('SELECT name FROM items WHERE id = ?').get(id).name;
+  const name = (await row('SELECT name FROM items WHERE id = ?', id)).name;
   assert.equal(name, 'Newer Name');
   // The losing pusher still pulls back the winning row.
   assert.equal(res.body.items[0].name, 'Newer Name');
@@ -173,8 +192,8 @@ test('user role: item push rejected per-row, movement accepted', async () => {
   assert.equal(res.status, 200);
   assert.equal(res.body.rejected.items.length, 1);
   assert.equal(res.body.rejected.movements.length, 0);
-  assert.equal(db.prepare('SELECT name FROM items WHERE id = ?').get(item.id).name, 'Tomato Seeds');
-  assert.equal(db.prepare('SELECT current_qty FROM items WHERE id = ?').get(item.id).current_qty, -3);
+  assert.equal((await row('SELECT name FROM items WHERE id = ?', item.id)).name, 'Tomato Seeds');
+  assert.equal(Number((await row('SELECT current_qty FROM items WHERE id = ?', item.id)).current_qty), -3);
   assert.equal(res.body.movements.at(-1).username, 'worker');
 });
 

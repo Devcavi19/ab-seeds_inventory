@@ -1,4 +1,5 @@
-import { nextSeq, currentSeq } from './db.js';
+import { allocateSeqRange, currentSeq } from './db.js';
+import { asyncHandler } from './auth.js';
 
 function itemToWire(row) {
   return {
@@ -7,10 +8,10 @@ function itemToWire(row) {
     sku: row.sku,
     category: row.category,
     unit: row.unit,
-    priceCents: row.price_cents,
-    lowStockThreshold: row.low_stock_threshold,
-    isArchived: !!row.is_archived,
-    updatedAt: row.updated_at,
+    priceCents: Number(row.price_cents),
+    lowStockThreshold: Number(row.low_stock_threshold),
+    isArchived: !!Number(row.is_archived),
+    updatedAt: Number(row.updated_at),
   };
 }
 
@@ -19,11 +20,11 @@ function movementToWire(row) {
     id: row.id,
     itemId: row.item_id,
     type: row.type,
-    qtyDelta: row.qty_delta,
+    qtyDelta: Number(row.qty_delta),
     note: row.note,
     userId: row.user_id,
     username: row.username,
-    createdAt: row.created_at,
+    createdAt: Number(row.created_at),
   };
 }
 
@@ -50,29 +51,21 @@ function validMovement(mv) {
   );
 }
 
-export function syncHandler(db) {
-  const getItem = db.prepare('SELECT * FROM items WHERE id = ?');
-  const insertItem = db.prepare(
-    `INSERT INTO items (id, name, sku, category, unit, price_cents, low_stock_threshold, is_archived, current_qty, updated_at, server_seq)
-     VALUES (@id, @name, @sku, @category, @unit, @price_cents, @low_stock_threshold, @is_archived, 0, @updated_at, @server_seq)`
-  );
-  const updateItem = db.prepare(
-    `UPDATE items SET name=@name, sku=@sku, category=@category, unit=@unit, price_cents=@price_cents,
-       low_stock_threshold=@low_stock_threshold, is_archived=@is_archived, updated_at=@updated_at, server_seq=@server_seq
-     WHERE id=@id`
-  );
-  const touchItemSeq = db.prepare('UPDATE items SET server_seq = ? WHERE id = ?');
-  const insertMovement = db.prepare(
-    `INSERT OR IGNORE INTO movements (id, item_id, type, qty_delta, note, user_id, username, created_at, server_seq)
-     VALUES (@id, @item_id, @type, @qty_delta, @note, @user_id, @username, @created_at, @server_seq)`
-  );
-  const bumpQty = db.prepare('UPDATE items SET current_qty = current_qty + ? WHERE id = ?');
-  const pullItems = db.prepare('SELECT * FROM items WHERE server_seq > ? ORDER BY server_seq');
-  const pullMovements = db.prepare('SELECT * FROM movements WHERE server_seq > ? ORDER BY server_seq');
+async function getItem(tx, id) {
+  return (await tx.execute({ sql: 'SELECT * FROM items WHERE id = ?', args: [id] })).rows[0];
+}
 
-  const runSync = db.transaction((user, lastServerSeq, items, movements) => {
-    const rejected = { items: [], movements: [] };
-    const isAdmin = user.role === 'admin';
+async function runSync(db, user, lastServerSeq, items, movements) {
+  const rejected = { items: [], movements: [] };
+  const isAdmin = user.role === 'admin';
+
+  const tx = await db.transaction('write');
+  try {
+    // Reserve enough sequence numbers for every row we might write, in one
+    // round trip. Unused numbers (rejected/duplicate rows) leave gaps, which
+    // the cursor-based pull tolerates.
+    const maxWrites = items.length + movements.length;
+    let seq = maxWrites > 0 ? await allocateSeqRange(tx, maxWrites) : 0;
 
     // Items first so movements can reference items pushed in the same request.
     for (const it of items) {
@@ -84,7 +77,7 @@ export function syncHandler(db) {
         rejected.items.push({ id: it.id, reason: 'only admins can create or edit items' });
         continue;
       }
-      const row = {
+      const args = {
         id: it.id,
         name: it.name.trim(),
         sku: it.sku.trim(),
@@ -95,14 +88,23 @@ export function syncHandler(db) {
         is_archived: it.isArchived ? 1 : 0,
         updated_at: it.updatedAt,
       };
-      const existing = getItem.get(it.id);
+      const existing = await getItem(tx, it.id);
       if (!existing) {
-        insertItem.run({ ...row, server_seq: nextSeq(db) });
-      } else if (row.updated_at >= existing.updated_at) {
-        updateItem.run({ ...row, server_seq: nextSeq(db) });
+        await tx.execute({
+          sql: `INSERT INTO items (id, name, sku, category, unit, price_cents, low_stock_threshold, is_archived, current_qty, updated_at, server_seq)
+                VALUES (:id, :name, :sku, :category, :unit, :price_cents, :low_stock_threshold, :is_archived, 0, :updated_at, :server_seq)`,
+          args: { ...args, server_seq: seq++ },
+        });
+      } else if (args.updated_at >= Number(existing.updated_at)) {
+        await tx.execute({
+          sql: `UPDATE items SET name=:name, sku=:sku, category=:category, unit=:unit, price_cents=:price_cents,
+                  low_stock_threshold=:low_stock_threshold, is_archived=:is_archived, updated_at=:updated_at, server_seq=:server_seq
+                WHERE id=:id`,
+          args: { ...args, server_seq: seq++ },
+        });
       } else {
         // Stale write loses LWW; bump seq so the pusher pulls back the winning version.
-        touchItemSeq.run(nextSeq(db), it.id);
+        await tx.execute({ sql: 'UPDATE items SET server_seq = ? WHERE id = ?', args: [seq++, it.id] });
       }
     }
 
@@ -111,37 +113,59 @@ export function syncHandler(db) {
         rejected.movements.push({ id: mv?.id ?? null, reason: 'invalid movement payload' });
         continue;
       }
-      if (!getItem.get(mv.itemId)) {
+      if (!(await getItem(tx, mv.itemId))) {
         rejected.movements.push({ id: mv.id, reason: 'unknown item' });
         continue;
       }
-      const result = insertMovement.run({
-        id: mv.id,
-        item_id: mv.itemId,
-        type: mv.type,
-        qty_delta: mv.qtyDelta,
-        note: typeof mv.note === 'string' ? mv.note : '',
-        user_id: user.id,
-        username: user.username,
-        created_at: mv.createdAt,
-        server_seq: nextSeq(db),
+      const result = await tx.execute({
+        sql: `INSERT OR IGNORE INTO movements (id, item_id, type, qty_delta, note, user_id, username, created_at, server_seq)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          mv.id,
+          mv.itemId,
+          mv.type,
+          mv.qtyDelta,
+          typeof mv.note === 'string' ? mv.note : '',
+          user.id,
+          user.username,
+          mv.createdAt,
+          seq++,
+        ],
       });
-      if (result.changes > 0) bumpQty.run(mv.qtyDelta, mv.itemId);
+      if (result.rowsAffected > 0) {
+        await tx.execute({
+          sql: 'UPDATE items SET current_qty = current_qty + ? WHERE id = ?',
+          args: [mv.qtyDelta, mv.itemId],
+        });
+      }
     }
 
+    const [serverSeq, pulledItems, pulledMovements] = [
+      await currentSeq(tx),
+      (await tx.execute({ sql: 'SELECT * FROM items WHERE server_seq > ? ORDER BY server_seq', args: [lastServerSeq] })).rows,
+      (await tx.execute({ sql: 'SELECT * FROM movements WHERE server_seq > ? ORDER BY server_seq', args: [lastServerSeq] })).rows,
+    ];
+
+    await tx.commit();
+
     return {
-      serverSeq: currentSeq(db),
-      items: pullItems.all(lastServerSeq).map(itemToWire),
-      movements: pullMovements.all(lastServerSeq).map(movementToWire),
+      serverSeq,
+      items: pulledItems.map(itemToWire),
+      movements: pulledMovements.map(movementToWire),
       rejected,
     };
-  });
+  } catch (err) {
+    tx.close();
+    throw err;
+  }
+}
 
-  return (req, res) => {
+export function syncHandler(db) {
+  return asyncHandler(async (req, res) => {
     const body = req.body ?? {};
     const lastServerSeq = Number.isFinite(body.lastServerSeq) ? body.lastServerSeq : 0;
     const items = Array.isArray(body.items) ? body.items : [];
     const movements = Array.isArray(body.movements) ? body.movements : [];
-    res.json(runSync(req.user, lastServerSeq, items, movements));
-  };
+    res.json(await runSync(db, req.user, lastServerSeq, items, movements));
+  });
 }
