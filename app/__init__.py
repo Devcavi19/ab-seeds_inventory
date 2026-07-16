@@ -32,6 +32,9 @@ def create_app(test_config=None):
     
     from app.blueprints.suppliers import bp as suppliers_bp
     app.register_blueprint(suppliers_bp)
+    
+    from app.blueprints.customers import bp as customers_bp
+    app.register_blueprint(customers_bp)
 
     @app.route('/health')
     def health():

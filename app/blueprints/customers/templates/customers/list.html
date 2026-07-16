@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Management - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Customer Management
+        <a href="{{ url_for('customers.create_customer') }}" class="btn btn-primary" style="float: right;">Create Customer</a>
+    </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer['name'] }}</td>
+                <td>{{ customer['email'] }}</td>
+                <td>{{ customer['phone'] }}</td>
+                <td>{{ customer['address'] }}</td>
+                <td>
+                    <a href="{{ url_for('customers.edit_customer', customer_id=customer['id']) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form method="POST" action="{{ url_for('customers.delete_customer', customer_id=customer['id']) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

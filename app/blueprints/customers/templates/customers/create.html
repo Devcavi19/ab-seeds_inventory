@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Create Customer - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Create New Customer
+    </div>
+    
+    <form method="POST" action="{{ url_for('customers.create_customer') }}">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" name="phone" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="address">Address</label>
+            <textarea id="address" name="address" class="form-control" rows="3" required></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Create Customer</button>
+        <a href="{{ url_for('customers.list_customers') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
