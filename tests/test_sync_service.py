@@ -52,7 +52,100 @@ def test_start_on_unconfigured_instance_does_not_spawn_thread():
     assert service._thread is None
 
 
+class _FakeLibsqlConnection:
+    """Stand-in for a libsql connection: records sync()/close() calls
+    without ever touching the network, regardless of whether the real
+    libsql_experimental package happens to be installed."""
+
+    def __init__(self):
+        self.sync_calls = 0
+        self.close_calls = 0
+
+    def sync(self):
+        self.sync_calls += 1
+
+    def close(self):
+        self.close_calls += 1
+
+
+class _FakeLibsqlModule:
+    def __init__(self):
+        self.connections = []
+
+    def connect(self, **kwargs):
+        conn = _FakeLibsqlConnection()
+        self.connections.append(conn)
+        return conn
+
+
+class _FailingSyncConnection:
+    """Fake connection whose .sync() raises, to exercise the error path."""
+
+    def __init__(self, error):
+        self._error = error
+        self.close_calls = 0
+
+    def sync(self):
+        raise self._error
+
+    def close(self):
+        self.close_calls += 1
+
+
+def test_sync_now_closes_connection_after_successful_sync(monkeypatch):
+    fake_libsql = _FakeLibsqlModule()
+    monkeypatch.setattr(sync_service_module, 'libsql', fake_libsql)
+    service = SyncService(':memory:', sync_url='libsql://example', auth_token='token')
+
+    result = service.sync_now()
+
+    assert result['status'] == 'ok'
+    assert len(fake_libsql.connections) == 1
+    conn = fake_libsql.connections[0]
+    assert conn.sync_calls == 1
+    assert conn.close_calls == 1
+
+
+def test_sync_now_closes_connection_when_sync_raises(monkeypatch):
+    failing_conn = _FailingSyncConnection(RuntimeError('sync boom'))
+
+    class _FailingLibsqlModule:
+        def connect(self, **kwargs):
+            return failing_conn
+
+    monkeypatch.setattr(sync_service_module, 'libsql', _FailingLibsqlModule())
+    service = SyncService(':memory:', sync_url='libsql://example', auth_token='token')
+
+    result = service.sync_now()
+
+    assert result['status'] == 'error'
+    assert result['error'] == 'sync boom'
+    assert failing_conn.close_calls == 1
+
+
+def test_sync_now_does_not_error_when_connect_itself_raises(monkeypatch):
+    # conn is never assigned in this case - guards that close() isn't
+    # attempted on None.
+    class _RaisingLibsqlModule:
+        def connect(self, **kwargs):
+            raise RuntimeError('connect boom')
+
+    monkeypatch.setattr(sync_service_module, 'libsql', _RaisingLibsqlModule())
+    service = SyncService(':memory:', sync_url='libsql://example', auth_token='token')
+
+    result = service.sync_now()
+
+    assert result['status'] == 'error'
+    assert result['error'] == 'connect boom'
+
+
 def test_start_stop_lifecycle_on_forced_configured_instance(monkeypatch):
+    # Fake out the libsql module itself (not sync_now/is_available) so this
+    # test is environment-independent: it must never attempt a real network
+    # connection whether or not libsql_experimental is actually installed.
+    fake_libsql = _FakeLibsqlModule()
+    monkeypatch.setattr(sync_service_module, 'libsql', fake_libsql)
+
     service = SyncService(':memory:', sync_url='libsql://example', auth_token='token',
                            interval_seconds=0.05)
     monkeypatch.setattr(service, 'is_configured', lambda: True)
@@ -76,6 +169,14 @@ def test_start_stop_lifecycle_on_forced_configured_instance(monkeypatch):
     service.stop()
     assert service._thread is None
     assert call_count['n'] >= 1
+
+    # The real sync_now()/_run_loop code path ran (not mocked away) and
+    # reached libsql.connect()/.sync() via the fake module - confirming the
+    # loop actually exercised the connect->sync flow without any real
+    # network attempt, and that every opened connection was closed.
+    assert len(fake_libsql.connections) == call_count['n']
+    assert all(conn.sync_calls == 1 for conn in fake_libsql.connections)
+    assert all(conn.close_calls == 1 for conn in fake_libsql.connections)
 
 
 def test_get_status_shape_and_values_before_and_after_sync_now():

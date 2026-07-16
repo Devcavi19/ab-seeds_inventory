@@ -52,6 +52,7 @@ class SyncService:
                 synced_at = self._last_sync_at
             return {'status': 'not_configured', 'synced_at': synced_at, 'error': None}
 
+        conn = None
         try:
             conn = libsql.connect(
                 database=self.database_path,
@@ -65,6 +66,13 @@ class SyncService:
                 self._last_error = str(exc)
                 synced_at = self._last_sync_at
             return {'status': 'error', 'synced_at': synced_at, 'error': str(exc)}
+        finally:
+            close = getattr(conn, 'close', None)
+            if callable(close):
+                try:
+                    close()
+                except Exception:
+                    pass
 
         synced_at = datetime.now(timezone.utc).isoformat()
         with self._lock:
