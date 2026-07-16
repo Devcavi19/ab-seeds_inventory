@@ -23,6 +23,9 @@ def create_app(test_config=None):
     
     from app.management import bp as management_bp
     app.register_blueprint(management_bp)
+    
+    from app.blueprints.categories import bp as categories_bp
+    app.register_blueprint(categories_bp)
 
     @app.route('/health')
     def health():

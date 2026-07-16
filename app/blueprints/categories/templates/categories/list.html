@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Category Management - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Category Management
+        <a href="{{ url_for('categories.create_category') }}" class="btn btn-primary" style="float: right;">Create Category</a>
+    </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ category['name'] }}</td>
+                <td>{{ category['description'] }}</td>
+                <td>
+                    <a href="{{ url_for('categories.edit_category', category_id=category['id']) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form method="POST" action="{{ url_for('categories.delete_category', category_id=category['id']) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
