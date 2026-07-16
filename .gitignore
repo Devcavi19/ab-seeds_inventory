@@ -3,3 +3,5 @@
 skills-lock.json
 
 plans/
+__pycache__/
+./tests/__pycache__/

@@ -30,12 +30,25 @@ def init_migrations(app):
     migrations_dir = os.path.join(app.root_path, '..', 'migrations')
     if not os.path.exists(migrations_dir):
         return
-        
+
     with app.app_context():
         db = get_db()
+        db.execute(
+            'CREATE TABLE IF NOT EXISTS schema_migrations ('
+            'filename TEXT PRIMARY KEY, '
+            'applied_at TEXT DEFAULT CURRENT_TIMESTAMP)'
+        )
+        applied = {
+            row[0]
+            for row in db.execute('SELECT filename FROM schema_migrations')
+        }
         for filename in sorted(os.listdir(migrations_dir)):
-            if filename.endswith('.sql'):
+            if filename.endswith('.sql') and filename not in applied:
                 filepath = os.path.join(migrations_dir, filename)
                 with open(filepath, 'r') as f:
                     db.executescript(f.read())
+                db.execute(
+                    'INSERT INTO schema_migrations (filename) VALUES (?)',
+                    (filename,),
+                )
         db.commit()
