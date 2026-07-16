@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AB Seeds Inventory{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        {% if show_sidebar is not defined or show_sidebar %}
+            {% include "components/sidebar.html" %}
+        {% endif %}
+        
+        <div class="main-content">
+            {% include "components/navbar.html" %}
+            
+            <main class="content">
+                {% include "components/flash_messages.html" %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

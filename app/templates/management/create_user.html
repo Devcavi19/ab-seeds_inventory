@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Create User - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Create New User
+    </div>
+    
+    <form method="POST" action="{{ url_for('management.create_user') }}">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="full_name">Full Name</label>
+            <input type="text" id="full_name" name="full_name" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="role">Role</label>
+            <select id="role" name="role" class="form-control" required>
+                <option value="admin">Admin</option>
+                <option value="staff" selected>Staff</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Create User</button>
+        <a href="{{ url_for('management.users') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+<header class="navbar">
+    <div class="navbar-content">
+        <div class="navbar-left">
+            {% block navbar_title %}
+            {% if request.endpoint == 'dashboard.index' %}
+                Dashboard
+            {% elif request.endpoint.startswith('inventory.') %}
+                Inventory Management
+            {% elif request.endpoint.startswith('suppliers.') %}
+                Supplier Management
+            {% elif request.endpoint.startswith('management.') %}
+                User Management
+            {% else %}
+                AB Seeds Inventory
+            {% endif %}
+            {% endblock %}
+        </div>
+        
+        <div class="navbar-right">
+            {% if session.get('user_full_name') %}
+                <span class="user-info">Welcome, {{ session['user_full_name'] }}</span>
+            {% endif %}
+        </div>
+    </div>
+</header>
