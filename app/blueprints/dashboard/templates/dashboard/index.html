@@ -1,147 +1,203 @@
 {% extends "base.html" %}
-
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard - AB Seeds Inventory{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Dashboard</h2>
+{% set fname = (session.get('user_full_name', '') ~ ' ').split(' ')[0] or 'there' %}
+{% set greet = 'Good morning' if now.hour < 12 else ('Good afternoon' if now.hour < 18 else 'Good evening') %}
 
-    <div class="mb-3">
-        <a href="{{ url_for('reports.sales_report') }}" class="btn btn-secondary">Sales Report</a>
-        <a href="{{ url_for('reports.purchases_report') }}" class="btn btn-secondary">Purchases Report</a>
-        <a href="{{ url_for('reports.stock_report') }}" class="btn btn-secondary">Stock Report</a>
-    </div>
-
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Total Products</div>
-                <p>{{ summary.total_products }}</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Total Customers</div>
-                <p>{{ summary.total_customers }}</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Total Suppliers</div>
-                <p>{{ summary.total_suppliers }}</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Low Stock Items</div>
-                <p>{{ summary.low_stock_count }}</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Pending Sales</div>
-                <p>{{ summary.pending_sales_count }}</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Pending Purchase Orders</div>
-                <p>{{ summary.pending_purchase_orders_count }}</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Total Sales Amount</div>
-                <p>${{ "%.2f"|format(total_sales_amount) }}</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header">Total Purchases Amount</div>
-                <p>${{ "%.2f"|format(total_purchases_amount) }}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4">
-        <div class="card-header">Sales Trend (Last 7 Days)</div>
-        <canvas id="salesTrendChart" height="100"></canvas>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Top Selling Products</div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Quantity Sold</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for product in top_products %}
-                        <tr>
-                            <td>{{ product.product_name }}</td>
-                            <td>{{ product.total_quantity }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="2">No sales data yet.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">Low Stock Items</div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Product ID</th>
-                            <th>Quantity</th>
-                            <th>Location</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in low_stock_items %}
-                        <tr>
-                            <td>{{ item.product_id }}</td>
-                            <td>{{ item.quantity }}</td>
-                            <td>{{ item.location }}</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="3">No low stock items.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+<div class="page-head">
+    <div class="eyebrow">Inventory overview</div>
+    <h1>{{ greet }}, {{ fname }}.</h1>
+    <p class="lede">A quick read on the seed catalog, stock health, and orders moving through today.</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const salesByDay = {{ sales_by_day | tojson }};
-    const ctx = document.getElementById('salesTrendChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: salesByDay.map(function(d) { return d.date; }),
-            datasets: [{
-                label: 'Sales Total',
-                data: salesByDay.map(function(d) { return d.total; }),
-                backgroundColor: '#3498db'
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-});
-</script>
+{# ---------- Headline stats ---------- #}
+<section class="stat-row">
+    <div class="stat-card is-seed">
+        <div class="stat-top">
+            <span class="stat-label">Sales revenue</span>
+            <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+        </div>
+        <div class="stat-value tnum"><span class="unit">$</span>{{ "{:,.0f}".format(total_sales_amount) }}</div>
+        <div class="stat-meta">Completed sales, all time</div>
+    </div>
+
+    <div class="stat-card is-good">
+        <div class="stat-top">
+            <span class="stat-label">Catalog</span>
+            <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/></svg></span>
+        </div>
+        <div class="stat-value tnum">{{ "{:,}".format(summary.total_products) }}</div>
+        <div class="stat-meta">Active seed products</div>
+    </div>
+
+    <div class="stat-card is-low">
+        <div class="stat-top">
+            <span class="stat-label">Low stock</span>
+            <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></span>
+        </div>
+        <div class="stat-value tnum">{{ summary.low_stock_count }}</div>
+        <div class="stat-meta"><a href="{{ url_for('stock.low_stock') }}">Review items &rarr;</a></div>
+    </div>
+
+    <div class="stat-card is-out">
+        <div class="stat-top">
+            <span class="stat-label">Pending sales</span>
+            <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        </div>
+        <div class="stat-value tnum">{{ summary.pending_sales_count }}</div>
+        <div class="stat-meta"><a href="{{ url_for('sales.list_sales') }}">Awaiting fulfilment &rarr;</a></div>
+    </div>
+</section>
+
+{# ---------- Chart + attention ---------- #}
+<section class="dash-grid">
+    {% set week_total = sales_by_day | sum(attribute='total') %}
+    {% set active_days = sales_by_day | selectattr('total', 'greaterthan', 0) | list | length %}
+    {% set maxv = sales_by_day | map(attribute='total') | max %}
+    {% set maxv = maxv if maxv and maxv > 0 else 1 %}
+    <div class="panel chart-panel">
+        <div class="panel-head">
+            <h2>Sales, last 7 days</h2>
+            <span class="panel-note">Daily completed sales</span>
+        </div>
+        <div class="chart-revenue">
+            <span class="big tnum">${{ "{:,.0f}".format(week_total) }}</span>
+            <span class="tag">{{ active_days }}/7 days with sales</span>
+        </div>
+
+        <div class="germ-chart" role="img" aria-label="Bar chart of completed sales for each of the last 7 days.">
+            <svg viewBox="0 0 700 190" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="sprout" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#C98A2B"/>
+                        <stop offset="100%" stop-color="#2E6B3E"/>
+                    </linearGradient>
+                </defs>
+                {# faint gridlines #}
+                <line x1="0" y1="52"  x2="700" y2="52"  stroke="#EDEFE8" stroke-width="1"/>
+                <line x1="0" y1="110" x2="700" y2="110" stroke="#EDEFE8" stroke-width="1"/>
+                {# soil baseline #}
+                <line x1="0" y1="168" x2="700" y2="168" stroke="#D9DDD1" stroke-width="1.5"/>
+                <line x1="0" y1="168" x2="700" y2="168" stroke="#C98A2B" stroke-width="1.5" stroke-dasharray="2 8" opacity=".5"/>
+                {% set n = sales_by_day | length %}
+                {% set slot = 700.0 / n %}
+                {% for d in sales_by_day %}
+                    {% set bh = (d.total / maxv) * 148 %}
+                    {% set cx = slot * loop.index0 + slot / 2 %}
+                    <g class="germ-col">
+                        <title>{{ d.date }} — ${{ "{:,.2f}".format(d.total) }}</title>
+                        <rect x="{{ cx - slot/2 }}" y="10" width="{{ slot }}" height="158" fill="transparent"/>
+                        {% if bh >= 4 %}
+                            <rect class="germ-bar" x="{{ cx - 21 }}" y="{{ 168 - bh }}" width="42" height="{{ bh }}" rx="8" fill="url(#sprout)"/>
+                        {% else %}
+                            <circle class="germ-bar" cx="{{ cx }}" cy="162" r="4" fill="#C7CDBE"/>
+                        {% endif %}
+                    </g>
+                {% endfor %}
+            </svg>
+            <div class="germ-axis">
+                {% for d in sales_by_day %}<span>{{ d.date[5:] }}</span>{% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="panel attention-panel">
+        <div class="panel-head">
+            <h2>Needs attention</h2>
+            <a class="panel-note" href="{{ url_for('stock.low_stock') }}">View all</a>
+        </div>
+        {% if low_stock_items %}
+        <ul class="attn-list">
+            {% for item in low_stock_items[:6] %}
+            <li class="attn-item">
+                <span class="attn-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V11"/><path d="M12 11C12 7.5 9.5 5 5 5c0 4.5 2.5 7 7 7Z"/></svg></span>
+                <div class="attn-body">
+                    <div class="attn-title">{{ item.location or 'Unassigned bin' }}</div>
+                    <div class="attn-sub">Lot {{ item.lot_number or '—' }}{% if item.expiry_date %} · exp {{ item.expiry_date }}{% endif %}</div>
+                </div>
+                <span class="attn-qty">{{ item.quantity }} left</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty">
+            <div class="empty-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <strong>Stock is healthy</strong>
+            <p>No products are below the low-stock threshold.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{# ---------- Best sellers + operations ---------- #}
+<section class="dash-grid">
+    <div class="panel">
+        <div class="panel-head">
+            <h2>Best sellers</h2>
+            <span class="panel-note">By quantity sold</span>
+        </div>
+        {% if top_products %}
+        {% set top_max = top_products | map(attribute='total_quantity') | max %}
+        {% set top_max = top_max if top_max and top_max > 0 else 1 %}
+        <ul class="rank-list">
+            {% for p in top_products %}
+            <li class="rank-item">
+                <span class="rank-num">{{ loop.index }}</span>
+                <div class="rank-body">
+                    <div class="rank-name">{{ p.product_name }}</div>
+                    <div class="rank-track"><div class="rank-fill" style="width: {{ (p.total_quantity / top_max * 100) | round(1) }}%"></div></div>
+                </div>
+                <span class="rank-val tnum">{{ "{:,}".format(p.total_quantity) }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty">
+            <div class="empty-ico" style="background:var(--paper-2); color:var(--muted)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/></svg></div>
+            <strong>No sales recorded yet</strong>
+            <p>Best-selling seeds will appear here once sales are completed.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="panel-head">
+            <h2>Operations</h2>
+            <span class="panel-note">Open work &amp; totals</span>
+        </div>
+        <ul class="attn-list">
+            <li class="attn-item">
+                <span class="attn-dot" style="background:var(--out-soft); color:var(--out)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+                <div class="attn-body">
+                    <div class="attn-title">Pending purchase orders</div>
+                    <div class="attn-sub"><a href="{{ url_for('purchases.list_purchase_orders') }}">Open purchases</a></div>
+                </div>
+                <span class="attn-qty" style="background:var(--low-soft); color:var(--seed-deep)">{{ summary.pending_purchase_orders_count }}</span>
+            </li>
+            <li class="attn-item">
+                <span class="attn-dot" style="background:var(--good-soft); color:var(--good)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+                <div class="attn-body">
+                    <div class="attn-title">Purchases value</div>
+                    <div class="attn-sub">Completed, all time</div>
+                </div>
+                <span class="attn-qty" style="background:var(--good-soft); color:var(--good)">${{ "{:,.0f}".format(total_purchases_amount) }}</span>
+            </li>
+        </ul>
+        <div class="mini-row">
+            <div class="mini">
+                <div class="mini-val tnum">{{ "{:,}".format(summary.total_customers) }}</div>
+                <div class="mini-label">Customers</div>
+            </div>
+            <div class="mini">
+                <div class="mini-val tnum">{{ "{:,}".format(summary.total_suppliers) }}</div>
+                <div class="mini-label">Suppliers</div>
+            </div>
+            <div class="mini">
+                <div class="mini-val tnum">{{ summary.pending_sales_count }}</div>
+                <div class="mini-label">Pending sales</div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

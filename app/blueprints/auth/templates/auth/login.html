@@ -1,105 +1,94 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in - AB Seeds Inventory</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/icon.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .auth-wrap { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }
+        .auth-brand {
+            position: relative;
+            background: linear-gradient(200deg, #1B4026 0%, #11291A 100%);
+            color: #fff;
+            padding: 56px 60px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            overflow: hidden;
+        }
+        .auth-brand::after {
+            content: ""; position: absolute; right: -120px; bottom: -140px;
+            width: 420px; height: 420px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(201,138,43,.28), transparent 62%);
+        }
+        .auth-logo { display: flex; align-items: center; gap: 13px; position: relative; z-index: 1; }
+        .auth-logo .brand-mark { width: 44px; height: 44px; }
+        .auth-logo .brand-mark svg { width: 26px; height: 26px; }
+        .auth-logo h1 { font-size: 22px; color: #fff; font-weight: 600; }
+        .auth-logo p { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.5); }
+        .auth-pitch { position: relative; z-index: 1; max-width: 30ch; }
+        .auth-pitch .eyebrow { color: var(--seed); }
+        .auth-pitch h2 { font-family: 'Fraunces', serif; font-size: 38px; font-weight: 500; color: #fff; line-height: 1.1; letter-spacing: -.02em; }
+        .auth-pitch p { color: rgba(255,255,255,.72); margin-top: 14px; font-size: 15px; }
+        .auth-foot { position: relative; z-index: 1; font-size: 12.5px; color: rgba(255,255,255,.45); }
 
-{% block title %}Login - AB Seeds Inventory{% endblock %}
+        .auth-form-side { display: grid; place-items: center; padding: 40px 24px; }
+        .auth-card { width: 100%; max-width: 380px; }
+        .auth-card > .eyebrow { margin-bottom: 6px; }
+        .auth-card h3 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; margin-bottom: 6px; }
+        .auth-card .sub { color: var(--muted); margin-bottom: 26px; font-size: 14px; }
+        .auth-card .btn { width: 100%; margin-top: 6px; padding: 13px; font-size: 15px; }
 
-{% block content %}
-{% set show_sidebar = false %}
-
-<div class="login-container">
-    <div class="login-card">
-        <h2 class="login-title">AB Seeds Inventory</h2>
-        <p class="login-subtitle">Please log in to continue</p>
-        
-        <form method="POST" action="{{ url_for('auth.login') }}" class="login-form">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" class="form-control" required autofocus>
+        @media (max-width: 860px) {
+            .auth-wrap { grid-template-columns: 1fr; }
+            .auth-brand { padding: 34px 28px; min-height: 240px; }
+            .auth-pitch h2 { font-size: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-wrap">
+        <aside class="auth-brand">
+            <div class="auth-logo">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 21V11"/><path d="M12 11C12 7.5 9.5 5 5 5c0 4.5 2.5 7 7 7Z"/><path d="M12 13c0-3 2-5 6-5 0 4-3 6-6 6Z"/>
+                    </svg>
+                </span>
+                <div><h1>AB Seeds</h1><p>Inventory</p></div>
             </div>
-            
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+            <div class="auth-pitch">
+                <div class="eyebrow">Grow with confidence</div>
+                <h2>Every seed, lot, and order in one place.</h2>
+                <p>Track stock, suppliers, and sales for your seed catalog — from first sowing to final harvest.</p>
             </div>
-            
-            <button type="submit" class="btn btn-primary login-btn">Log In</button>
-        </form>
+            <div class="auth-foot">© {{ now.year }} AB Seeds · Inventory System</div>
+        </aside>
+
+        <main class="auth-form-side">
+            <div class="auth-card">
+                <div class="eyebrow">Welcome back</div>
+                <h3>Sign in</h3>
+                <p class="sub">Enter your credentials to reach the dashboard.</p>
+
+                {% include "components/flash_messages.html" %}
+
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" required autofocus autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sign in</button>
+                </form>
+            </div>
+        </main>
     </div>
-</div>
-
-<style>
-    .login-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background-color: #f5f5f5;
-        padding: 20px;
-    }
-    
-    .login-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 40px;
-        width: 100%;
-        max-width: 400px;
-        text-align: center;
-    }
-    
-    .login-title {
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #2c3e50;
-    }
-    
-    .login-subtitle {
-        color: #7f8c8d;
-        margin-bottom: 30px;
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-        text-align: left;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 500;
-        color: #2c3e50;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 16px;
-        box-sizing: border-box;
-    }
-    
-    .form-control:focus {
-        outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-    }
-    
-    .login-btn {
-        width: 100%;
-        padding: 12px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    
-    .login-btn:hover {
-        background-color: #2980b9;
-    }
-</style>
-{% endblock %}
+</body>
+</html>

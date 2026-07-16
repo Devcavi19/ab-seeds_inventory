@@ -65,6 +65,11 @@ def create_app(test_config=None):
     from app.blueprints.sync import bp as sync_bp
     app.register_blueprint(sync_bp)
 
+    @app.context_processor
+    def inject_now():
+        from datetime import datetime
+        return {'now': datetime.now()}
+
     @app.route('/health')
     def health():
         return jsonify({"status": "ok"})
