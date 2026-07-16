@@ -13,9 +13,20 @@ def create_app(test_config=None):
         
     from . import extensions
     extensions.init_db(app)
-    
+
     # Run migrations
     extensions.init_migrations(app)
+
+    # Sync service: optional background sync of the local SQLite file against
+    # a Turso remote (embedded replica). No-op unless TURSO_DATABASE_URL /
+    # TURSO_AUTH_TOKEN are configured and libsql-experimental is installed.
+    from app.services.sync_service import SyncService
+    app.sync_service = SyncService(
+        database_path=app.config['DATABASE_PATH'],
+        sync_url=app.config.get('TURSO_DATABASE_URL'),
+        auth_token=app.config.get('TURSO_AUTH_TOKEN'),
+    )
+    app.sync_service.start()
 
     # Register blueprints
     from app.blueprints.auth import bp as auth_bp
@@ -50,6 +61,9 @@ def create_app(test_config=None):
 
     from app.blueprints.reports import bp as reports_bp
     app.register_blueprint(reports_bp)
+
+    from app.blueprints.sync import bp as sync_bp
+    app.register_blueprint(sync_bp)
 
     @app.route('/health')
     def health():
