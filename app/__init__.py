@@ -42,6 +42,9 @@ def create_app(test_config=None):
     from app.blueprints.purchases import bp as purchases_bp
     app.register_blueprint(purchases_bp)
 
+    from app.blueprints.sales import bp as sales_bp
+    app.register_blueprint(sales_bp)
+
     @app.route('/health')
     def health():
         return jsonify({"status": "ok"})
