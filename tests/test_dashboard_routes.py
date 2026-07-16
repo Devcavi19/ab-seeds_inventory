@@ -10,6 +10,12 @@ def test_dashboard_requires_login(client, db):
     assert b'Login' in response.data
 
 
+def test_favicon_link_rendered_in_head(client, db):
+    response = client.get('/', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'<link rel="icon" type="image/png" href="/static/images/icon.png">' in response.data
+
+
 def test_dashboard_reachable_by_admin(client, db):
     User.create(db, "admin", "password123", "Admin User", "admin")
     client.post('/auth/login', data={'username': 'admin', 'password': 'password123'})
