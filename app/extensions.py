@@ -1,0 +1,41 @@
+import os
+import sqlite3
+from flask import g, current_app
+
+def get_db():
+    if 'db' not in g:
+        # Create data dir if not exists
+        os.makedirs(os.path.dirname(current_app.config['DATABASE_PATH']), exist_ok=True)
+        
+        sync_url = current_app.config.get('TURSO_DATABASE_URL')
+        auth_token = current_app.config.get('TURSO_AUTH_TOKEN')
+        
+        if sync_url and auth_token:
+            # For now, we'll use regular SQLite
+            # In the future, we can implement Turso sync functionality
+            g.db = sqlite3.connect(database=current_app.config['DATABASE_PATH'])
+        else:
+            g.db = sqlite3.connect(database=current_app.config['DATABASE_PATH'])
+    return g.db
+
+def close_db(e=None):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+
+def init_db(app):
+    app.teardown_appcontext(close_db)
+
+def init_migrations(app):
+    migrations_dir = os.path.join(app.root_path, '..', 'migrations')
+    if not os.path.exists(migrations_dir):
+        return
+        
+    with app.app_context():
+        db = get_db()
+        for filename in sorted(os.listdir(migrations_dir)):
+            if filename.endswith('.sql'):
+                filepath = os.path.join(migrations_dir, filename)
+                with open(filepath, 'r') as f:
+                    db.executescript(f.read())
+        db.commit()
