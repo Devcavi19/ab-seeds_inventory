@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Dashboard</h2>
+
+    <div class="mb-3">
+        <a href="{{ url_for('reports.sales_report') }}" class="btn btn-secondary">Sales Report</a>
+        <a href="{{ url_for('reports.purchases_report') }}" class="btn btn-secondary">Purchases Report</a>
+        <a href="{{ url_for('reports.stock_report') }}" class="btn btn-secondary">Stock Report</a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Total Products</div>
+                <p>{{ summary.total_products }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Total Customers</div>
+                <p>{{ summary.total_customers }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Total Suppliers</div>
+                <p>{{ summary.total_suppliers }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Low Stock Items</div>
+                <p>{{ summary.low_stock_count }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Pending Sales</div>
+                <p>{{ summary.pending_sales_count }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Pending Purchase Orders</div>
+                <p>{{ summary.pending_purchase_orders_count }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Total Sales Amount</div>
+                <p>${{ "%.2f"|format(total_sales_amount) }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header">Total Purchases Amount</div>
+                <p>${{ "%.2f"|format(total_purchases_amount) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Sales Trend (Last 7 Days)</div>
+        <canvas id="salesTrendChart" height="100"></canvas>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Top Selling Products</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity Sold</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in top_products %}
+                        <tr>
+                            <td>{{ product.product_name }}</td>
+                            <td>{{ product.total_quantity }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2">No sales data yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Low Stock Items</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product ID</th>
+                            <th>Quantity</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in low_stock_items %}
+                        <tr>
+                            <td>{{ item.product_id }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.location }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3">No low stock items.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const salesByDay = {{ sales_by_day | tojson }};
+    const ctx = document.getElementById('salesTrendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: salesByDay.map(function(d) { return d.date; }),
+            datasets: [{
+                label: 'Sales Total',
+                data: salesByDay.map(function(d) { return d.total; }),
+                backgroundColor: '#3498db'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

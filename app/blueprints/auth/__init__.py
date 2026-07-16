@@ -18,11 +18,8 @@ def login():
             session['user_id'] = user['id']
             session['user_role'] = user['role']
             session['user_full_name'] = user['full_name']
-            # Redirect to management users if admin, otherwise to a simple welcome page
-            if user['role'] == 'admin':
-                return redirect(url_for('management.users'))
-            else:
-                return redirect(url_for('auth.login'))
+            # The dashboard is the landing page for every logged-in user, admin or not
+            return redirect(url_for('dashboard.index'))
             
         flash('Invalid username or password', 'error')
     
