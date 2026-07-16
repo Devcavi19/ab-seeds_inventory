@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Supplier - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Edit Supplier
+    </div>
+    
+    <form method="POST" action="{{ url_for('suppliers.edit_supplier', supplier_id=supplier['id']) }}">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ supplier['name'] }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="contact_person">Contact Person</label>
+            <input type="text" id="contact_person" name="contact_person" class="form-control" value="{{ supplier['contact_person'] }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" name="phone" class="form-control" value="{{ supplier['phone'] }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" value="{{ supplier['email'] }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="address">Address</label>
+            <textarea id="address" name="address" class="form-control" rows="3" required>{{ supplier['address'] }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" class="form-control" rows="3">{{ supplier['notes'] }}</textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Update Supplier</button>
+        <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

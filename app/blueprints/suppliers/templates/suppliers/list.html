@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Supplier Management - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Supplier Management
+        <a href="{{ url_for('suppliers.create_supplier') }}" class="btn btn-primary" style="float: right;">Create Supplier</a>
+    </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Contact Person</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for supplier in suppliers %}
+            <tr>
+                <td>{{ supplier['name'] }}</td>
+                <td>{{ supplier['contact_person'] }}</td>
+                <td>{{ supplier['phone'] }}</td>
+                <td>{{ supplier['email'] }}</td>
+                <td>{{ supplier['address'] }}</td>
+                <td>
+                    <a href="{{ url_for('suppliers.edit_supplier', supplier_id=supplier['id']) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form method="POST" action="{{ url_for('suppliers.delete_supplier', supplier_id=supplier['id']) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
