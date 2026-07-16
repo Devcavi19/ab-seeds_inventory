@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Stock - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Edit Stock for {{ product['name'] }}
+    </div>
+    
+    <div class="card-body">
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" value="{{ stock['quantity'] }}" required min="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="lot_number">Lot Number</label>
+                <input type="text" class="form-control" id="lot_number" name="lot_number" value="{{ stock['lot_number'] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="expiry_date">Expiry Date</label>
+                <input type="date" class="form-control" id="expiry_date" name="expiry_date" value="{{ stock['expiry_date'] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" class="form-control" id="location" name="location" value="{{ stock['location'] }}" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Update Stock</button>
+            <a href="{{ url_for('stock.list_stock') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>{% endblock %}

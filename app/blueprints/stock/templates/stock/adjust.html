@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Adjust Stock - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Adjust Stock for {{ product['name'] }} (Current: {{ stock['quantity'] }})
+    </div>
+    
+    <div class="card-body">
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="adjustment">Adjustment Amount</label>
+                <input type="number" class="form-control" id="adjustment" name="adjustment" required>
+                <small class="form-text text-muted">Enter positive number to add stock, negative to remove</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="reason">Reason (optional)</label>
+                <textarea class="form-control" id="reason" name="reason" rows="2"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Adjust Stock</button>
+            <a href="{{ url_for('stock.list_stock') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>{% endblock %}

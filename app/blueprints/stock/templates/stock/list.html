@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Management - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Stock Management
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary" style="float: right; margin-left: 10px;">View Products</a>
+        <a href="{{ url_for('stock.low_stock') }}" class="btn btn-warning" style="float: right;">Low Stock Alerts</a>
+    </div>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Lot Number</th>
+                <th>Expiry Date</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+            <tr>
+                <td>{{ stock['product_id'] }}</td>
+                <td>{{ stock['quantity'] }}</td>
+                <td>{{ stock['lot_number'] }}</td>
+                <td>{{ stock['expiry_date'] }}</td>
+                <td>{{ stock['location'] }}</td>
+                <td>
+                    <a href="{{ url_for('stock.edit_stock', product_id=stock['product_id']) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="{{ url_for('stock.adjust_stock', product_id=stock['product_id']) }}" class="btn btn-info btn-sm">Adjust</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>{% endblock %}

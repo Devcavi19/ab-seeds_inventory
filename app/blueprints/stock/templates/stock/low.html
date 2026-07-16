@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock Alerts - AB Seeds Inventory{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Low Stock Alerts (Threshold: 20 units)
+        <a href="{{ url_for('stock.list_stock') }}" class="btn btn-secondary" style="float: right;">Back to Stock Management</a>
+    </div>
+    
+    {% if stocks %}
+    <table class="table table-warning">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Lot Number</th>
+                <th>Expiry Date</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+            <tr class="{% if stock['quantity'] < 10 %}table-danger{% endif %}">
+                <td>{{ stock['product_id'] }}</td>
+                <td>{{ stock['quantity'] }}</td>
+                <td>{{ stock['lot_number'] }}</td>
+                <td>{{ stock['expiry_date'] }}</td>
+                <td>{{ stock['location'] }}</td>
+                <td>
+                    <a href="{{ url_for('stock.edit_stock', product_id=stock['product_id']) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="{{ url_for('stock.adjust_stock', product_id=stock['product_id']) }}" class="btn btn-info btn-sm">Adjust</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="card-body">
+        <div class="alert alert-success">
+            No low stock items found. All products have sufficient inventory.
+        </div>
+    </div>
+    {% endif %}
+</div>{% endblock %}
