@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS categories (
     id TEXT PRIMARY KEY,
     name TEXT UNIQUE,
     description TEXT,
-    created_at TEXT
+    is_deleted INTEGER DEFAULT 0,
+    created_at TEXT,
+    updated_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS products (
