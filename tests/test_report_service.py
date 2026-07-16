@@ -19,6 +19,8 @@ def test_get_summary_counts(db):
 
     Customer.create(db, "Customer A", "a@test.com", "111", "Addr A")
     Customer.create(db, "Customer B", "b@test.com", "222", "Addr B")
+    inactive_customer = Customer.create(db, "Customer C", "c@test.com", "999", "Addr C")
+    Customer.soft_delete(db, inactive_customer['id'])
 
     Supplier.create(db, "Supplier A", "John", "333", "s@test.com", "Addr S")
     inactive_supplier = Supplier.create(db, "Supplier B", "Jane", "444", "s2@test.com", "Addr S2")
@@ -40,7 +42,7 @@ def test_get_summary_counts(db):
     counts = report_service.get_summary_counts(db)
 
     assert counts['total_products'] == 4  # Product A, Product B, Low Stock Product, Normal Stock Product (Product C soft-deleted)
-    assert counts['total_customers'] == 3
+    assert counts['total_customers'] == 3  # Customer A, Customer B, Sales Customer (Customer C soft-deleted)
     assert counts['total_suppliers'] == 2  # Supplier A + PO Supplier (Supplier B soft-deleted)
     assert counts['low_stock_count'] >= 1
     assert counts['pending_sales_count'] >= 1

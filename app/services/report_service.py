@@ -17,7 +17,7 @@ def get_summary_counts(db) -> dict:
     ).fetchone()[0]
 
     total_customers = db.execute(
-        "SELECT COUNT(*) FROM customers"
+        "SELECT COUNT(*) FROM customers WHERE is_active = TRUE"
     ).fetchone()[0]
 
     total_suppliers = db.execute(
