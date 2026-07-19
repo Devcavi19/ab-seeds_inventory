@@ -25,7 +25,7 @@
 
     <div class="card mb-4">
         <div class="card-header">Total Sales Amount (Completed)</div>
-        <p>${{ "%.2f"|format(total_amount) }}</p>
+        <p>₱{{ "%.2f"|format(total_amount) }}</p>
     </div>
 
     <div class="card">
@@ -43,10 +43,16 @@
                 {% for sale in sales %}
                 <tr>
                     <td>{{ sale.sale_number }}</td>
-                    <td>{{ sale.customer_id }}</td>
+                    <td>
+                        {% if sale.customer_id %}
+                            {{ sale.customer_name or sale.customer_id }}
+                        {% else %}
+                            <span class="text-muted">Walk-in</span>
+                        {% endif %}
+                    </td>
                     <td><span class="badge bg-{{ 'primary' if sale.status == 'pending' else 'success' if sale.status == 'completed' else 'info' }}">{{ sale.status }}</span></td>
                     <td>{{ sale.sale_date }}</td>
-                    <td>${{ "%.2f"|format(sale.total_amount) }}</td>
+                    <td>₱{{ "%.2f"|format(sale.total_amount) }}</td>
                 </tr>
                 {% else %}
                 <tr><td colspan="5">No sales found.</td></tr>

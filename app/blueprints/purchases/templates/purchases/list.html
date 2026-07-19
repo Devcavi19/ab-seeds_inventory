@@ -31,7 +31,7 @@
                     <td>{{ order.supplier_id }}</td>
                     <td><span class="badge bg-{{ 'primary' if order.status == 'pending' else 'success' if order.status == 'completed' else 'info' }}">{{ order.status }}</span></td>
                     <td>{{ order.order_date }}</td>
-                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td>₱{{ "%.2f"|format(order.total_amount) }}</td>
                     <td>
                         <a href="{{ url_for('purchases.view_purchase_order', order_id=order.id) }}" class="btn btn-sm btn-info">
                             <i class="bi bi-eye"></i> View

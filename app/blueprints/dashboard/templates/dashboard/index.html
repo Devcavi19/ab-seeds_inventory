@@ -18,7 +18,7 @@
             <span class="stat-label">Sales revenue</span>
             <span class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
         </div>
-        <div class="stat-value tnum"><span class="unit">$</span>{{ "{:,.0f}".format(total_sales_amount) }}</div>
+        <div class="stat-value tnum"><span class="unit">₱</span>{{ "{:,.0f}".format(total_sales_amount) }}</div>
         <div class="stat-meta">Completed sales, all time</div>
     </div>
 
@@ -62,7 +62,7 @@
             <span class="panel-note">Daily completed sales</span>
         </div>
         <div class="chart-revenue">
-            <span class="big tnum">${{ "{:,.0f}".format(week_total) }}</span>
+            <span class="big tnum">₱{{ "{:,.0f}".format(week_total) }}</span>
             <span class="tag">{{ active_days }}/7 days with sales</span>
         </div>
 
@@ -86,7 +86,7 @@
                     {% set bh = (d.total / maxv) * 148 %}
                     {% set cx = slot * loop.index0 + slot / 2 %}
                     <g class="germ-col">
-                        <title>{{ d.date }} — ${{ "{:,.2f}".format(d.total) }}</title>
+                        <title>{{ d.date }} — ₱{{ "{:,.2f}".format(d.total) }}</title>
                         <rect x="{{ cx - slot/2 }}" y="10" width="{{ slot }}" height="158" fill="transparent"/>
                         {% if bh >= 4 %}
                             <rect class="germ-bar" x="{{ cx - 21 }}" y="{{ 168 - bh }}" width="42" height="{{ bh }}" rx="8" fill="url(#sprout)"/>
@@ -181,7 +181,7 @@
                     <div class="attn-title">Purchases value</div>
                     <div class="attn-sub">Completed, all time</div>
                 </div>
-                <span class="attn-qty" style="background:var(--good-soft); color:var(--good)">${{ "{:,.0f}".format(total_purchases_amount) }}</span>
+                <span class="attn-qty" style="background:var(--good-soft); color:var(--good)">₱{{ "{:,.0f}".format(total_purchases_amount) }}</span>
             </li>
         </ul>
         <div class="mini-row">

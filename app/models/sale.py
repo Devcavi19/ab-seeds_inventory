@@ -30,23 +30,34 @@ class Sale:
     @staticmethod
     def get_by_id(db, sale_id: str) -> dict | None:
         """Get sale by ID"""
-        result = db.execute(
-            f"SELECT * FROM {Sale.TABLE} WHERE id = ?",
-            [sale_id]
-        ).fetchone()
+        query = f"""
+            SELECT s.*, c.name as customer_name 
+            FROM {Sale.TABLE} s 
+            LEFT JOIN customers c ON s.customer_id = c.id 
+            WHERE s.id = ?
+        """
+        result = db.execute(query, [sale_id]).fetchone()
 
         if result:
             columns = [column[1] for column in db.execute(f"PRAGMA table_info({Sale.TABLE})").fetchall()]
+            columns.append('customer_name')
             return dict(zip(columns, result))
         return None
 
     @staticmethod
     def get_all(db) -> list[dict]:
         """Get all sales"""
-        results = db.execute(f"SELECT * FROM {Sale.TABLE} ORDER BY sale_date DESC").fetchall()
+        query = f"""
+            SELECT s.*, c.name as customer_name 
+            FROM {Sale.TABLE} s 
+            LEFT JOIN customers c ON s.customer_id = c.id 
+            ORDER BY s.sale_date DESC
+        """
+        results = db.execute(query).fetchall()
         sales = []
         if results:
             columns = [column[1] for column in db.execute(f"PRAGMA table_info({Sale.TABLE})").fetchall()]
+            columns.append('customer_name')
             for row in results:
                 sales.append(dict(zip(columns, row)))
         return sales

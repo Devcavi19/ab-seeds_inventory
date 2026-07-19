@@ -48,7 +48,7 @@
                 <tr>
                     <td>{{ product['name'] }}</td>
                     <td>{{ product['description'] }}</td>
-                    <td>${{ "%.2f"|format(product['price']) }}</td>
+                    <td>₱{{ "%.2f"|format(product['price']) }}</td>
                     <td>{{ product['stock_quantity'] }}</td>
                     <td>{{ category_map.get(product['category_id'], 'Unknown') }}</td>
                     <td>

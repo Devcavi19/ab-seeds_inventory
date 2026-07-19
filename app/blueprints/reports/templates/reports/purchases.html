@@ -25,7 +25,7 @@
 
     <div class="card mb-4">
         <div class="card-header">Total Purchases Amount (Completed)</div>
-        <p>${{ "%.2f"|format(total_amount) }}</p>
+        <p>₱{{ "%.2f"|format(total_amount) }}</p>
     </div>
 
     <div class="card">
@@ -46,7 +46,7 @@
                     <td>{{ order.supplier_id }}</td>
                     <td><span class="badge bg-{{ 'primary' if order.status == 'pending' else 'success' if order.status == 'completed' else 'info' }}">{{ order.status }}</span></td>
                     <td>{{ order.order_date }}</td>
-                    <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                    <td>₱{{ "%.2f"|format(order.total_amount) }}</td>
                 </tr>
                 {% else %}
                 <tr><td colspan="5">No purchase orders found.</td></tr>

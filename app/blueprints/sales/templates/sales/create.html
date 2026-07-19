@@ -84,7 +84,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Total</label>
-                        <input type="text" class="form-control item-total" value="$0.00" readonly>
+                        <input type="text" class="form-control item-total" value="₱0.00" readonly>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="button" class="btn btn-danger remove-item-btn w-100">
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         newRow.querySelector('.product-select').value = '';
         newRow.querySelector('input[name="item_quantity[]"]').value = '1';
         newRow.querySelector('input[name="item_unit_price[]"]').value = '0.00';
-        newRow.querySelector('.item-total').value = '$0.00';
+        newRow.querySelector('.item-total').value = '₱0.00';
 
         itemsContainer.appendChild(newRow);
     });
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const quantity = parseFloat(row.querySelector('input[name="item_quantity[]"]').value) || 0;
             const unitPrice = parseFloat(row.querySelector('input[name="item_unit_price[]"]').value) || 0;
             const total = quantity * unitPrice;
-            row.querySelector('.item-total').value = '$' + total.toFixed(2);
+            row.querySelector('.item-total').value = '₱' + total.toFixed(2);
         }
     });
 });
