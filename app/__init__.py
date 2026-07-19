@@ -14,21 +14,30 @@ def create_app(test_config=None):
     from . import extensions
     extensions.init_db(app)
 
-    # Run migrations
-    extensions.init_migrations(app)
-
-    # Sync service: optional background sync of the local SQLite file against
-    # a Turso remote (embedded replica). No-op unless TURSO_DATABASE_URL /
-    # TURSO_AUTH_TOKEN are configured and libsql-experimental is installed.
-    from app.services.sync_service import SyncService
-    app.sync_service = SyncService(
-        database_path=app.config['DATABASE_PATH'],
-        sync_url=app.config.get('TURSO_DATABASE_URL'),
-        auth_token=app.config.get('TURSO_AUTH_TOKEN'),
-    )
     import os
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+    is_master_process = os.environ.get('WERKZEUG_RUN_MAIN') != 'true' and app.debug
+    
+    if not is_master_process:
+        # Sync service: optional background sync of the local SQLite file against
+        # a Turso remote (embedded replica). No-op unless TURSO_DATABASE_URL /
+        # TURSO_AUTH_TOKEN are configured and libsql-experimental is installed.
+        from app.services.sync_service import SyncService
+        app.sync_service = SyncService(
+            database_path=app.config['DATABASE_PATH'],
+            sync_url=app.config.get('TURSO_DATABASE_URL'),
+            auth_token=app.config.get('TURSO_AUTH_TOKEN'),
+        )
+
+        # Run migrations
+        extensions.init_migrations(app)
+        
+        # Start background sync
         app.sync_service.start()
+    else:
+        # Dummy service for the master process which just watches files
+        class DummySync:
+            conn = None
+        app.sync_service = DummySync()
 
     # Register blueprints
     from app.blueprints.auth import bp as auth_bp

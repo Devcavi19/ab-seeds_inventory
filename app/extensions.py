@@ -15,9 +15,9 @@ def get_db():
         auth_token = current_app.config.get('TURSO_AUTH_TOKEN')
         
         if sync_url and auth_token and turso:
-            # We use standard sqlite3 for local requests to avoid locking issues,
-            # while the background SyncService handles the actual turso push/pull.
-            g.db = sqlite3.connect(database=current_app.config['DATABASE_PATH'])
+            # Use the global sync connection so that libSQL correctly tracks writes
+            # without spinning up multiple Tokio runtimes and causing Rust panics.
+            g.db = current_app.sync_service.conn
         else:
             g.db = sqlite3.connect(database=current_app.config['DATABASE_PATH'])
     return g.db
@@ -25,7 +25,10 @@ def get_db():
 def close_db(e=None):
     db = g.pop('db', None)
     if db is not None:
-        db.close()
+        # Only close if it's the standard sqlite3 connection
+        sync_url = current_app.config.get('TURSO_DATABASE_URL')
+        if not (sync_url and current_app.config.get('TURSO_AUTH_TOKEN') and turso):
+            db.close()
 
 def init_db(app):
     app.teardown_appcontext(close_db)

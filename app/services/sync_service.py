@@ -30,6 +30,17 @@ class SyncService:
         self._last_sync_status = None
         self._last_error = None
         self._lock = threading.Lock()
+        self.conn = None
+        
+        if self.is_configured():
+            try:
+                self.conn = turso.sync.connect(
+                    self.database_path,
+                    remote_url=self.sync_url,
+                    auth_token=self.auth_token,
+                )
+            except Exception as e:
+                print(f"Failed to initialize global sync connection: {e}")
 
     def is_available(self) -> bool:
         return turso is not None
@@ -45,35 +56,22 @@ class SyncService:
                 synced_at = self._last_sync_at
             return {'status': 'unavailable', 'synced_at': synced_at, 'error': None}
 
-        if not self.is_configured():
+        if not self.is_configured() or not self.conn:
             with self._lock:
                 self._last_sync_status = 'not_configured'
                 self._last_error = None
                 synced_at = self._last_sync_at
             return {'status': 'not_configured', 'synced_at': synced_at, 'error': None}
 
-        conn = None
         try:
-            conn = turso.sync.connect(
-                self.database_path,
-                remote_url=self.sync_url,
-                auth_token=self.auth_token,
-            )
-            conn.push()
-            conn.pull()
+            self.conn.push()
+            self.conn.pull()
         except Exception as exc:
             with self._lock:
                 self._last_sync_status = 'error'
                 self._last_error = str(exc)
                 synced_at = self._last_sync_at
             return {'status': 'error', 'synced_at': synced_at, 'error': str(exc)}
-        finally:
-            close = getattr(conn, 'close', None)
-            if callable(close):
-                try:
-                    close()
-                except Exception:
-                    pass
 
         synced_at = datetime.now(timezone.utc).isoformat()
         with self._lock:

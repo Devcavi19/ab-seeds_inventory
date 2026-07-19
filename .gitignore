@@ -15,3 +15,6 @@ local.db-changes
 local.db-info
 local.db-wal
 local.db-wal-revert
+
+# test folder
+tests/
