@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Turso Sync Dashboard</h1>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Synchronization Status</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Available:</strong> 
+                    {% if status.available %}
+                        <span class="badge bg-success">Yes</span>
+                    {% else %}
+                        <span class="badge bg-danger">No (libsql missing)</span>
+                    {% endif %}
+                </p>
+                <p><strong>Configured:</strong> 
+                    {% if status.configured %}
+                        <span class="badge bg-success">Yes</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">No (credentials missing)</span>
+                    {% endif %}
+                </p>
+                <p><strong>Last Sync Status:</strong> 
+                    {% if status.last_sync_status == 'ok' %}
+                        <span class="badge bg-success">OK</span>
+                    {% elif status.last_sync_status %}
+                        <span class="badge bg-danger">{{ status.last_sync_status }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Never</span>
+                    {% endif %}
+                </p>
+                <p><strong>Last Sync At:</strong> {{ status.last_sync_at or 'Never' }}</p>
+                
+                {% if status.last_error %}
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> {{ status.last_error }}
+                </div>
+                {% endif %}
+
+                <hr>
+                
+                <button id="syncNowBtn" class="btn btn-primary" {% if not status.configured %}disabled{% endif %}>
+                    <i class="bi bi-arrow-repeat"></i> Sync Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('syncNowBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('syncNowBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Syncing...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('{{ url_for("sync.sync_now") }}', { method: 'POST' });
+        const data = await response.json();
+        if (data.status === 'ok') {
+            alert('Sync completed successfully!');
+            location.reload();
+        } else {
+            alert('Sync failed: ' + (data.error || data.status));
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch (err) {
+        alert('An error occurred during sync.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+</script>
+{% endblock %}

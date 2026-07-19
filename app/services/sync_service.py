@@ -2,19 +2,19 @@ import threading
 from datetime import datetime, timezone
 
 try:
-    import libsql_experimental as libsql
+    import turso.sync
 except ImportError:
-    libsql = None
+    turso = None
 
 
 class SyncService:
     """Manages background sync of the local SQLite file against a Turso
-    embedded-replica remote via libsql-experimental.
+    embedded-replica remote via pyturso.
 
     This is entirely separate from the app's primary DB connection
-    (app.extensions.get_db()) - it opens its own dedicated libsql connection
+    (app.extensions.get_db()) - it opens its own dedicated connection
     to the same DATABASE_PATH file purely to drive periodic `.sync()` calls.
-    Safely inert (never imports/uses libsql) unless both configured and the
+    Safely inert (never imports/uses turso) unless both configured and the
     native dependency is actually installed.
     """
 
@@ -32,7 +32,7 @@ class SyncService:
         self._lock = threading.Lock()
 
     def is_available(self) -> bool:
-        return libsql is not None
+        return turso is not None
 
     def is_configured(self) -> bool:
         return self.is_available() and bool(self.sync_url) and bool(self.auth_token)
@@ -54,12 +54,13 @@ class SyncService:
 
         conn = None
         try:
-            conn = libsql.connect(
-                database=self.database_path,
-                sync_url=self.sync_url,
+            conn = turso.sync.connect(
+                self.database_path,
+                remote_url=self.sync_url,
                 auth_token=self.auth_token,
             )
-            conn.sync()
+            conn.push()
+            conn.pull()
         except Exception as exc:
             with self._lock:
                 self._last_sync_status = 'error'

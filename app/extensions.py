@@ -1,6 +1,10 @@
 import os
 import sqlite3
 from flask import g, current_app
+try:
+    import turso.sync
+except ImportError:
+    turso = None
 
 def get_db():
     if 'db' not in g:
@@ -10,9 +14,9 @@ def get_db():
         sync_url = current_app.config.get('TURSO_DATABASE_URL')
         auth_token = current_app.config.get('TURSO_AUTH_TOKEN')
         
-        if sync_url and auth_token:
-            # For now, we'll use regular SQLite
-            # In the future, we can implement Turso sync functionality
+        if sync_url and auth_token and turso:
+            # We use standard sqlite3 for local requests to avoid locking issues,
+            # while the background SyncService handles the actual turso push/pull.
             g.db = sqlite3.connect(database=current_app.config['DATABASE_PATH'])
         else:
             g.db = sqlite3.connect(database=current_app.config['DATABASE_PATH'])

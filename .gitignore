@@ -8,3 +8,10 @@ __pycache__/
 ./app/__pycache__/
 
 flask.log
+.env
+
+# db files
+local.db-changes
+local.db-info
+local.db-wal
+local.db-wal-revert

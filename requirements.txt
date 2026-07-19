@@ -3,4 +3,4 @@ bcrypt>=4.0
 python-dotenv>=1.0
 pytest>=8.0
 flaskwebgui>=1.0.0
-libsql-experimental>=0.0.50
+pyturso>=0.7.0
