@@ -35,7 +35,7 @@
                 <td>
                     <a href="{{ url_for('management.edit_user', user_id=user['id']) }}" class="btn btn-secondary btn-sm">Edit</a>
                     <form method="POST" action="{{ url_for('management.delete_user', user_id=user['id']) }}" style="display: inline;">
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="event.preventDefault(); appConfirm('Are you sure?').then(res => { if(res) this.closest('form').submit(); })">Delete</button>
                     </form>
                 </td>
             </tr>

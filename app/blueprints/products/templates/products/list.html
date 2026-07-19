@@ -54,7 +54,7 @@
                     <td>
                         <a href="{{ url_for('products.edit_product', product_id=product['id']) }}" class="btn btn-secondary btn-sm">Edit</a>
                         <form method="POST" action="{{ url_for('products.delete_product', product_id=product['id']) }}" style="display: inline;">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="event.preventDefault(); appConfirm('Are you sure?').then(res => { if(res) this.closest('form').submit(); })">Delete</button>
                         </form>
                     </td>
                 </tr>
