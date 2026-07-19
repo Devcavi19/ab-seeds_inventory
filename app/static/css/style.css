@@ -617,6 +617,73 @@ select:focus-visible, .btn:focus-visible {
     outline: 2px solid var(--seed); outline-offset: -2px;
 }
 
+/* ---------- App Modal (Custom Alert) ---------- */
+.app-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.app-modal-backdrop {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(22, 53, 31, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.app-modal-content {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: modal-pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes modal-pop {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.app-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.app-modal-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: var(--good-soft); color: var(--good);
+    flex: none;
+}
+.app-modal-icon svg { width: 22px; height: 22px; }
+.app-modal-title h4 {
+    font-size: 18px;
+    font-family: 'Fraunces', serif;
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.2;
+}
+.app-modal-body p {
+    font-size: 14px;
+    color: var(--ink-2);
+    margin: 0;
+    line-height: 1.5;
+}
+.app-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
 /* ---------- Utilities (kept) ---------- */
 .text-center { text-align: center; }
 .text-right { text-align: right; }

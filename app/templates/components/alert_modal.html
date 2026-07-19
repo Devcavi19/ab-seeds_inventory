@@ -1,0 +1,86 @@
+<div id="app-alert-modal" class="app-modal" style="display: none;">
+    <div class="app-modal-backdrop"></div>
+    <div class="app-modal-content">
+        <div class="app-modal-header">
+            <div class="app-modal-icon" id="app-alert-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                </svg>
+            </div>
+            <div class="app-modal-title">
+                <h4 id="app-alert-title">Notification</h4>
+            </div>
+        </div>
+        <div class="app-modal-body">
+            <p id="app-alert-message"></p>
+        </div>
+        <div class="app-modal-footer">
+            <button class="btn btn-primary" id="app-alert-btn">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.appAlert = function(message, title = 'Notification', type = 'info') {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('app-alert-modal');
+            const messageEl = document.getElementById('app-alert-message');
+            const titleEl = document.getElementById('app-alert-title');
+            const btn = document.getElementById('app-alert-btn');
+            const icon = document.getElementById('app-alert-icon');
+            
+            messageEl.textContent = message;
+            titleEl.textContent = title;
+            
+            // Set styles based on type
+            if (type === 'error') {
+                icon.style.background = 'var(--out-soft)';
+                icon.style.color = 'var(--out)';
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>';
+                btn.className = 'btn btn-danger';
+            } else if (type === 'success') {
+                icon.style.background = 'var(--good-soft)';
+                icon.style.color = 'var(--good)';
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>';
+                btn.className = 'btn btn-primary';
+            } else {
+                icon.style.background = 'var(--seed-soft)';
+                icon.style.color = 'var(--seed-deep)';
+                icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>';
+                btn.className = 'btn btn-primary';
+            }
+            
+            modal.style.display = 'flex';
+            btn.focus();
+            
+            const closeHandler = () => {
+                modal.style.display = 'none';
+                btn.removeEventListener('click', closeHandler);
+                resolve();
+            };
+            
+            btn.addEventListener('click', closeHandler);
+        });
+    };
+
+    // Override native alert to use our custom appAlert (defaults to non-blocking unless awaited)
+    window.originalAlert = window.alert;
+    window.alert = function(msg) {
+        // Automatically try to detect success/error from message
+        let type = 'info';
+        let title = 'Notification';
+        const lowerMsg = msg.toLowerCase();
+        
+        if (lowerMsg.includes('success')) {
+            type = 'success';
+            title = 'Success';
+        } else if (lowerMsg.includes('error') || lowerMsg.includes('fail') || lowerMsg.includes('required')) {
+            type = 'error';
+            title = 'Action Required';
+        }
+        
+        // Return promise so async/await can be used
+        return appAlert(msg, title, type);
+    };
+</script>
