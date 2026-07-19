@@ -25,8 +25,8 @@
             background: radial-gradient(circle at 30% 30%, rgba(201,138,43,.28), transparent 62%);
         }
         .auth-logo { display: flex; align-items: center; gap: 13px; position: relative; z-index: 1; }
-        .auth-logo .brand-mark { width: 44px; height: 44px; }
-        .auth-logo .brand-mark svg { width: 26px; height: 26px; }
+        .auth-logo .brand-mark { width: 56px; height: 56px; }
+        .auth-logo .brand-mark svg, .auth-logo .brand-mark img { width: 38px; height: 38px; object-fit: contain; }
         .auth-logo h1 { font-size: 22px; color: #fff; font-weight: 600; }
         .auth-logo p { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.5); }
         .auth-pitch { position: relative; z-index: 1; max-width: 30ch; }
@@ -54,9 +54,7 @@
         <aside class="auth-brand">
             <div class="auth-logo">
                 <span class="brand-mark" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 21V11"/><path d="M12 11C12 7.5 9.5 5 5 5c0 4.5 2.5 7 7 7Z"/><path d="M12 13c0-3 2-5 6-5 0 4-3 6-6 6Z"/>
-                    </svg>
+                    <img src="{{ url_for('static', filename='images/icon.png') }}" alt="AB Seeds Logo">
                 </span>
                 <div><h1>AB Seeds</h1><p>Inventory</p></div>
             </div>
