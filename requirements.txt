@@ -3,4 +3,5 @@ bcrypt>=4.0
 python-dotenv>=1.0
 pytest>=8.0
 flaskwebgui>=1.0.0
+waitress>=3.0.0
 pyturso>=0.7.0
