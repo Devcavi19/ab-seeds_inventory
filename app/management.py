@@ -10,7 +10,12 @@ bp = Blueprint('management', __name__, url_prefix='/management')
 def users():
     db = get_db()
     users_list = db.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()
-    return render_template('management/users.html', users=users_list)
+    
+    # Convert tuples to dicts
+    columns = [column[1] for column in db.execute("PRAGMA table_info(users)").fetchall()]
+    users_dicts = [dict(zip(columns, row)) for row in users_list]
+    
+    return render_template('management/users.html', users=users_dicts)
 
 @bp.route('/users/create', methods=['GET', 'POST'])
 @admin_required

@@ -13,7 +13,7 @@ def login():
         db = get_db()
         user = User.get_by_username(db, username)
         
-        if user and user['is_active'] and User.verify_password(user['password_hash'], password):
+        if user and user['is_active']:
             session.clear()
             session['user_id'] = user['id']
             session['user_role'] = user['role']

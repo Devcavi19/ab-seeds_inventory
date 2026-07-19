@@ -631,29 +631,220 @@ select:focus-visible, .btn:focus-visible {
     .stat-row { grid-template-columns: repeat(2, 1fr); }
     .dash-grid { grid-template-columns: 1fr; }
 }
+/* ---------- Mobile Responsive Elements ---------- */
+.bottom-nav, .sidebar-overlay, .fab { display: none; }
+
 @media (max-width: 880px) {
     :root { --sidebar-w: 0px; }
+    
+    /* Hide standard sidebar, use drawer instead */
     .sidebar {
-        position: static; width: 100%; height: auto;
-        flex-direction: row; align-items: center; flex-wrap: wrap;
-        gap: 6px;
+        position: fixed;
+        left: -100%;
+        top: 0;
+        bottom: 0;
+        width: 280px;
+        z-index: 2000;
+        transition: left 0.3s ease;
+        box-shadow: var(--shadow-lg);
+        flex-direction: column;
+        flex-wrap: nowrap;
+        height: 100%;
     }
-    .sidebar-header { padding: 14px 18px; }
-    .sidebar-nav { display: flex; flex-wrap: wrap; padding: 0 12px 12px; gap: 4px; width: 100%; }
-    .nav-group { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 0; }
-    .nav-label { display: none; }
-    .sidebar-nav a.active::before { display: none; }
-    .sidebar-footer { border: none; padding: 0 18px 12px; margin-left: auto; }
-    .main-content { margin-left: 0; }
-    .navbar { padding: 14px 18px; }
+    .sidebar.drawer-open {
+        left: 0;
+    }
+    
+    .sidebar-overlay {
+        display: block;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Main Container adjustments */
+    .main-content { margin-left: 0; width: 100%; }
+    .content { padding: 20px 16px 80px; } /* bottom padding for nav */
+
+    /* Navbar */
+    .navbar { padding: 12px 16px; }
     .searchbox { display: none; }
-    .content { padding: 20px 18px 40px; }
+    .navbar-sub { display: none; }
+    .user-info { display: none; }
+    .user-chip { padding: 4px; }
+    
+    /* Bottom Nav */
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        z-index: 1000;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .bottom-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 0;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 500;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+    }
+    .bottom-nav-item .nav-ico {
+        width: 22px; height: 22px;
+        margin-bottom: 4px;
+    }
+    .bottom-nav-item.active {
+        color: var(--pine-700);
+    }
+
+    /* Floating Action Button (FAB) */
+    .fab {
+        display: flex;
+        position: fixed;
+        bottom: 76px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--pine-700);
+        color: white;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(22,53,31,.30);
+        z-index: 999;
+        text-decoration: none;
+    }
+    .fab:hover { background: var(--pine-800); }
+    .fab svg { width: 24px; height: 24px; }
+    
+    /* Hide desktop action buttons if FAB is used */
+    .desktop-action { display: none !important; }
+
+    /* Mobile Card Tables */
+    table.table {
+        display: block;
+        width: 100%;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+    }
+    table.table thead { display: none; }
+    table.table tbody {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    table.table tr {
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 16px;
+        box-shadow: var(--shadow-sm);
+    }
+    table.table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border: none;
+        text-align: right;
+    }
+    table.table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-align: left;
+        margin-right: auto;
+    }
+    /* Style first td as card header */
+    table.table td:first-child {
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--ink);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--line-soft);
+        margin-bottom: 4px;
+        display: block;
+        text-align: left;
+    }
+    table.table td:first-child::before { display: none; }
+
+    /* Filter form layout improvements */
+    .card-body form .row {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0;
+    }
+    .card-body form .row > div {
+        flex: 1 1 140px;
+        padding: 0;
+    }
+    .card-body form .btn { width: 100%; margin-top: 4px; }
+    
+    /* General Create button to FAB on mobile */
+    a.btn-primary[href*="create"] {
+        position: fixed;
+        bottom: 76px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--pine-700);
+        color: transparent !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(22,53,31,.30);
+        z-index: 999;
+        text-decoration: none;
+        overflow: hidden;
+        border: none;
+        padding: 0;
+    }
+    a.btn-primary[href*="create"] * {
+        display: none !important;
+    }
+    a.btn-primary[href*="create"]::before {
+        content: '+';
+        color: white;
+        font-size: 32px;
+        font-weight: 300;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -54%);
+    }
 }
+
 @media (max-width: 560px) {
     .stat-row { grid-template-columns: 1fr; }
     .mini-row { grid-template-columns: 1fr; }
     .page-head h1 { font-size: 26px; }
-    .user-info { display: none; }
 }
 
 /* ---------- Motion preference ---------- */

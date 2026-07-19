@@ -24,6 +24,40 @@
                 {% block content %}{% endblock %}
             </main>
         </div>
+        {% include "components/bottom_nav.html" %}
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            if (menuBtn && sidebar && overlay) {
+                const toggleDrawer = () => {
+                    sidebar.classList.toggle('drawer-open');
+                    overlay.classList.toggle('visible');
+                    document.body.style.overflow = sidebar.classList.contains('drawer-open') ? 'hidden' : '';
+                };
+
+                menuBtn.addEventListener('click', toggleDrawer);
+                overlay.addEventListener('click', toggleDrawer);
+            }
+        });
+
+        // Add data-labels to all tables for mobile responsive cards
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('table.table').forEach(table => {
+                const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+                table.querySelectorAll('tbody tr').forEach(tr => {
+                    Array.from(tr.querySelectorAll('td')).forEach((td, index) => {
+                        if (headers[index]) {
+                            td.setAttribute('data-label', headers[index]);
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>

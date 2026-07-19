@@ -73,7 +73,9 @@ def create_sale():
     products = Product.get_all(db)
 
     if request.method == 'POST':
-        customer_id = request.form['customer_id']
+        customer_id = request.form.get('customer_id')
+        if not customer_id:
+            customer_id = None
         sale_number = request.form['sale_number']
         status = request.form['status']
         sale_date = request.form['sale_date']
@@ -143,7 +145,9 @@ def edit_sale(sale_id):
         return redirect(url_for('sales.list_sales'))
 
     if request.method == 'POST':
-        customer_id = request.form['customer_id']
+        customer_id = request.form.get('customer_id')
+        if not customer_id:
+            customer_id = None
         sale_number = request.form['sale_number']
         status = request.form['status']
         sale_date = request.form['sale_date']

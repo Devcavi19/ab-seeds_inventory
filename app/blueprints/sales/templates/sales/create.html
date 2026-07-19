@@ -19,8 +19,8 @@
                     </div>
                     <div class="col-md-6">
                         <label for="customer_id" class="form-label">Customer</label>
-                        <select class="form-select" id="customer_id" name="customer_id" required>
-                            <option value="">Select Customer</option>
+                        <select class="form-select" id="customer_id" name="customer_id">
+                            <option value="">Walk-in / Unregistered</option>
                             {% for customer in customers %}
                             <option value="{{ customer.id }}">{{ customer.name }}</option>
                             {% endfor %}
