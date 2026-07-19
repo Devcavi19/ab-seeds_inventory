@@ -26,7 +26,9 @@ def create_app(test_config=None):
         sync_url=app.config.get('TURSO_DATABASE_URL'),
         auth_token=app.config.get('TURSO_AUTH_TOKEN'),
     )
-    app.sync_service.start()
+    import os
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+        app.sync_service.start()
 
     # Register blueprints
     from app.blueprints.auth import bp as auth_bp
