@@ -14,8 +14,9 @@ def create_app(test_config=None):
     from . import extensions
     extensions.init_db(app)
 
-    import os
-    is_master_process = os.environ.get('WERKZEUG_RUN_MAIN') != 'true' and app.debug
+    import os, sys
+    is_desktop = 'run_desktop.py' in sys.argv[0] or 'flaskwebgui' in sys.modules
+    is_master_process = os.environ.get('WERKZEUG_RUN_MAIN') != 'true' and app.debug and not is_desktop
     
     if not is_master_process:
         # Sync service: optional background sync of the local SQLite file against
