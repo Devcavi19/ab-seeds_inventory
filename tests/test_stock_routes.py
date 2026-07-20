@@ -71,3 +71,14 @@ def test_stock_routes(client, db):
     response = client.get('/stock/low')
     assert response.status_code == 200
     assert b'Low Stock Alerts' in response.data
+
+def test_export_stock_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/stock/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=stock.csv' in response.headers['Content-Disposition']

@@ -101,3 +101,39 @@ def test_stock_report_page_joins_product_name(client, db):
     assert response.status_code == 200
     assert b'Stock Report Product' in response.data
     assert b'42' in response.data
+
+
+def test_export_sales_report_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/reports/sales/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=sales_report.csv' in response.headers['Content-Disposition']
+
+
+def test_export_purchases_report_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/reports/purchases/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=purchases_report.csv' in response.headers['Content-Disposition']
+
+
+def test_export_stock_report_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/reports/stock/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=stock_report.csv' in response.headers['Content-Disposition']

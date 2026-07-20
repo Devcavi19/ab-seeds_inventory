@@ -3,6 +3,7 @@ from app.extensions import get_db
 from app.models.stock import Stock
 from app.models.product import Product
 from app.auth import admin_required
+from app.utils.csv_export import generate_csv_response
 
 bp = Blueprint('stock', __name__, url_prefix='/stock', template_folder='templates')
 
@@ -98,3 +99,31 @@ def low_stock():
         stock['product_name'] = product['name'] if product else stock['product_id']
         enriched.append(stock)
     return render_template('stock/low.html', stocks=enriched)
+
+@bp.route('/export')
+@admin_required
+def export_csv():
+    db = get_db()
+    stocks = Stock.get_all(db)
+    
+    # Enrich each stock entry with its product name
+    enriched = []
+    for stock in stocks:
+        product = Product.get_by_id(db, stock['product_id'])
+        stock = dict(stock)
+        stock['product_name'] = product['name'] if product else stock['product_id']
+        enriched.append(stock)
+    
+    headers = ['ID', 'Product', 'Quantity', 'Lot Number', 'Expiry Date', 'Location']
+    rows = []
+    for stock in enriched:
+        rows.append({
+            'ID': stock['id'],
+            'Product': stock['product_name'],
+            'Quantity': stock['quantity'],
+            'Lot Number': stock['lot_number'] or '',
+            'Expiry Date': stock['expiry_date'] or '',
+            'Location': stock['location'] or ''
+        })
+    
+    return generate_csv_response('stock', headers, rows)

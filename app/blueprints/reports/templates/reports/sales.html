@@ -7,6 +7,10 @@
     <h2 class="mb-4">Sales Report</h2>
 
     <div class="card mb-4">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Filter by Date Range</span>
+            <a href="{{ url_for('reports.export_sales_report_csv') }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="btn btn-secondary btn-sm">Export CSV</a>
+        </div>
         <form method="GET" action="{{ url_for('reports.sales_report') }}" class="row">
             <div class="col-md-4">
                 <label for="start_date" class="form-label">Start Date</label>
