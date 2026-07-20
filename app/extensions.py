@@ -7,14 +7,14 @@ except ImportError:
     turso = None
 
 def get_db():
-    if 'db' not in g:
+    if 'db' not in g or g.db is None:
         # Create data dir if not exists
         os.makedirs(os.path.dirname(current_app.config['DATABASE_PATH']), exist_ok=True)
         
         sync_url = current_app.config.get('TURSO_DATABASE_URL')
         auth_token = current_app.config.get('TURSO_AUTH_TOKEN')
         
-        if sync_url and auth_token and turso:
+        if sync_url and auth_token and turso and current_app.sync_service.conn is not None:
             # Use the global sync connection so that libSQL correctly tracks writes
             # without spinning up multiple Tokio runtimes and causing Rust panics.
             g.db = current_app.sync_service.conn
