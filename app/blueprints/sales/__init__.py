@@ -6,6 +6,7 @@ from app.models.customer import Customer
 from app.models.product import Product
 from app.models.stock import Stock
 from app.auth import admin_required
+from app.utils.csv_export import generate_csv_response
 
 bp = Blueprint('sales', __name__, url_prefix='/sales', template_folder='templates')
 
@@ -240,3 +241,27 @@ def update_sale_status(sale_id):
 
     flash('Sale status updated successfully', 'success')
     return redirect(url_for('sales.view_sale', sale_id=sale_id))
+
+
+@bp.route('/export')
+@admin_required
+def export_csv():
+    db = get_db()
+    sales = Sale.get_all(db)
+    
+    # Sales already have customer_name from the model's get_all() method
+    headers = ['ID', 'Sale Number', 'Customer', 'Status', 'Sale Date', 'Payment Method', 'Total Amount', 'Notes']
+    rows = []
+    for sale in sales:
+        rows.append({
+            'ID': sale['id'],
+            'Sale Number': sale['sale_number'],
+            'Customer': sale['customer_name'] or sale['customer_id'] or 'Walk-in',
+            'Status': sale['status'],
+            'Sale Date': sale['sale_date'],
+            'Payment Method': sale['payment_method'] or '',
+            'Total Amount': f"₱{sale['total_amount']:.2f}" if sale['total_amount'] else "₱0.00",
+            'Notes': sale['notes'] or ''
+        })
+    
+    return generate_csv_response('sales', headers, rows)

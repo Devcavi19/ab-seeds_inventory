@@ -513,3 +513,15 @@ def test_sale_update_status_aggregates_same_product_across_line_items_for_overse
     # No partial mutation - stock stays exactly at 10, not partially decremented
     stock = Stock.get_by_product_id(db, product['id'])
     assert stock['quantity'] == 10
+
+
+def test_export_sales_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/sales/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=sales.csv' in response.headers['Content-Disposition']

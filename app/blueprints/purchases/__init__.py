@@ -6,6 +6,7 @@ from app.models.supplier import Supplier
 from app.models.product import Product
 from app.models.stock import Stock
 from app.auth import admin_required
+from app.utils.csv_export import generate_csv_response
 
 bp = Blueprint('purchases', __name__, url_prefix='/purchases', template_folder='templates')
 
@@ -170,3 +171,33 @@ def update_order_status(order_id):
     
     flash('Purchase order status updated successfully', 'success')
     return redirect(url_for('purchases.view_purchase_order', order_id=order_id))
+
+@bp.route('/export')
+@admin_required
+def export_csv():
+    db = get_db()
+    orders = PurchaseOrder.get_all(db)
+    
+    # Enrich with supplier names
+    enriched = []
+    for order in orders:
+        supplier = Supplier.get_by_id(db, order['supplier_id'])
+        order = dict(order)
+        order['supplier_name'] = supplier['name'] if supplier else order['supplier_id']
+        enriched.append(order)
+    
+    headers = ['ID', 'Order Number', 'Supplier', 'Status', 'Order Date', 'Received Date', 'Total Amount', 'Notes']
+    rows = []
+    for order in enriched:
+        rows.append({
+            'ID': order['id'],
+            'Order Number': order['order_number'],
+            'Supplier': order['supplier_name'],
+            'Status': order['status'],
+            'Order Date': order['order_date'],
+            'Received Date': order['received_date'] or '',
+            'Total Amount': f"₱{order['total_amount']:.2f}" if order['total_amount'] else "₱0.00",
+            'Notes': order['notes'] or ''
+        })
+    
+    return generate_csv_response('purchase_orders', headers, rows)
