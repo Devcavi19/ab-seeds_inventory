@@ -81,6 +81,23 @@ def create_app(test_config=None):
         from datetime import datetime
         return {'now': datetime.now()}
 
+    @app.template_filter('format_datetime')
+    def format_datetime_filter(value):
+        if not value:
+            return ""
+        from datetime import datetime, timezone, timedelta
+        try:
+            # Parse ISO 8601 string
+            dt = datetime.fromisoformat(value)
+            # Add UTC+8 (PST) if naive, or adjust if aware
+            pst = timezone(timedelta(hours=8))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            dt = dt.astimezone(pst)
+            return dt.strftime("%m/%d/%Y %I:%M %p")
+        except ValueError:
+            return value
+
     @app.route('/health')
     def health():
         return jsonify({"status": "ok"})

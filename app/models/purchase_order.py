@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 class PurchaseOrder:
     TABLE = 'purchase_orders'
@@ -11,7 +11,7 @@ class PurchaseOrder:
         """
         Create a new purchase order
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         id = str(uuid.uuid4())
         
         db.execute(
@@ -56,7 +56,7 @@ class PurchaseOrder:
                 order_date: str, received_date: str = None, total_amount: float = 0.0, 
                 notes: str = '') -> dict | None:
         """Update a purchase order"""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""
@@ -74,7 +74,7 @@ class PurchaseOrder:
     @staticmethod
     def update_status(db, order_id: str, status: str) -> dict | None:
         """Update purchase order status"""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""
@@ -90,7 +90,7 @@ class PurchaseOrder:
     @staticmethod
     def update_total_amount(db, order_id: str, total_amount: float) -> dict | None:
         """Update purchase order total amount"""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""

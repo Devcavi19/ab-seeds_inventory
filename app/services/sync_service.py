@@ -1,5 +1,5 @@
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 try:
     import turso.sync
@@ -85,7 +85,8 @@ class SyncService:
                 synced_at = self._last_sync_at
             return {'status': 'error', 'synced_at': synced_at, 'error': str(exc)}
 
-        synced_at = datetime.now(timezone.utc).isoformat()
+        pst = timezone(timedelta(hours=8))
+        synced_at = datetime.now(pst).strftime("%m/%d/%Y %I:%M %p")
         with self._lock:
             self._last_sync_at = synced_at
             self._last_sync_status = 'ok'

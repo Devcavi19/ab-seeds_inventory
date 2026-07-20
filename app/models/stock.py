@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 class Stock:
     TABLE = 'stock'
@@ -10,7 +10,7 @@ class Stock:
         Upsert stock for a product. If stock exists for the product, update it.
         If not, create new stock entry.
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         # Check if stock already exists for this product
         existing = Stock.get_by_product_id(db, product_id)
@@ -103,7 +103,7 @@ class Stock:
         if new_quantity < 0:
             new_quantity = 0  # Prevent negative stock
         
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""

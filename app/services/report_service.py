@@ -90,7 +90,8 @@ def get_sales_by_day(db, days: int = 7) -> list[dict]:
     ordered oldest to newest. Days with no completed sales are zero-filled
     rather than omitted, since this feeds a chart that needs a stable x-axis.
     """
-    today = datetime.now(timezone.utc).date()
+    pst = timezone(timedelta(hours=8))
+    today = datetime.now(pst).date()
     date_range = [(today - timedelta(days=offset)).isoformat() for offset in range(days - 1, -1, -1)]
 
     results = db.execute(

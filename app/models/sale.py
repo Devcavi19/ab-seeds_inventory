@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 class Sale:
     TABLE = 'sales'
@@ -11,7 +11,7 @@ class Sale:
         """
         Create a new sale
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         id = str(uuid.uuid4())
 
         db.execute(
@@ -66,7 +66,7 @@ class Sale:
     def update(db, sale_id: str, customer_id: str, sale_number: str, status: str,
                sale_date: str, payment_method: str, total_amount: float, notes: str) -> dict | None:
         """Update a sale"""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
 
         db.execute(
             f"""
@@ -84,7 +84,7 @@ class Sale:
     @staticmethod
     def update_status(db, sale_id: str, status: str) -> dict | None:
         """Update sale status"""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
 
         db.execute(
             f"""
@@ -100,7 +100,7 @@ class Sale:
     @staticmethod
     def update_total_amount(db, sale_id: str, total_amount: float) -> dict | None:
         """Update sale total amount"""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
 
         db.execute(
             f"""

@@ -1,6 +1,6 @@
 import uuid
 import bcrypt
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 class User:
     TABLE = 'users'
@@ -8,7 +8,7 @@ class User:
     @staticmethod
     def create(db, username: str, password: str, full_name: str, role: str = 'staff') -> dict:
         id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         salt = bcrypt.gensalt()
         password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
         

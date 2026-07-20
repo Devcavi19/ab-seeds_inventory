@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 class Customer:
     TABLE = 'customers'
@@ -7,7 +7,7 @@ class Customer:
     @staticmethod
     def create(db, name: str, email: str, phone: str, address: str) -> dict:
         id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""
@@ -40,7 +40,7 @@ class Customer:
         
     @staticmethod
     def update(db, id: str, name: str, email: str, phone: str, address: str) -> dict | None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""
@@ -55,7 +55,7 @@ class Customer:
         
     @staticmethod
     def soft_delete(db, id: str) -> dict | None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""

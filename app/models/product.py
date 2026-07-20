@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import os
 from werkzeug.utils import secure_filename
 
@@ -20,7 +20,7 @@ class Product:
     @staticmethod
     def create(db, name: str, description: str, price: float, stock_quantity: int, category_id: str, image_file=None) -> dict:
         id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         # Handle image upload
         image_path = None
@@ -63,7 +63,7 @@ class Product:
         
     @staticmethod
     def update(db, id: str, name: str, description: str, price: float, stock_quantity: int, category_id: str, image_file=None) -> dict | None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         # Get existing product to preserve image if not updated
         existing = Product.get_by_id(db, id)
@@ -100,7 +100,7 @@ class Product:
         
     @staticmethod
     def soft_delete(db, id: str) -> dict | None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone(timedelta(hours=8))).isoformat()
         
         db.execute(
             f"""
