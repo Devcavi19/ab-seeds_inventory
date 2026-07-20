@@ -4,6 +4,7 @@ from app.models.purchase_order import PurchaseOrder
 from app.models.purchase_order_item import PurchaseOrderItem
 from app.models.supplier import Supplier
 from app.models.product import Product
+from app.models.stock import Stock
 from app.auth import admin_required
 
 bp = Blueprint('purchases', __name__, url_prefix='/purchases', template_folder='templates')
@@ -57,6 +58,12 @@ def create_purchase_order():
         
         # Update total amount
         PurchaseOrder.update_total_amount(db, order['id'], total_amount)
+        
+        # Add to stock if created as completed
+        if status == 'completed':
+            for i in range(len(item_product_ids)):
+                if item_product_ids[i] and item_quantities[i] and item_unit_costs[i]:
+                    Stock.adjust_quantity(db, item_product_ids[i], int(item_quantities[i]))
         
         flash('Purchase order created successfully', 'success')
         return redirect(url_for('purchases.list_purchase_orders'))
@@ -152,6 +159,13 @@ def update_order_status(order_id):
         return redirect(url_for('purchases.list_purchase_orders'))
     
     status = request.form['status']
+    previous_status = order['status']
+    
+    if status == 'completed' and previous_status != 'completed':
+        items = PurchaseOrderItem.get_by_order_id(db, order_id)
+        for item in items:
+            Stock.adjust_quantity(db, item['product_id'], item['quantity'])
+            
     PurchaseOrder.update_status(db, order_id, status)
     
     flash('Purchase order status updated successfully', 'success')

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.extensions import get_db
 from app.models.category import Category
+from app.models.product import Product
 from app.auth import admin_required
 
 bp = Blueprint('categories', __name__, url_prefix='/categories', template_folder='templates')
@@ -55,7 +56,11 @@ def delete_category(category_id):
     if not category:
         flash('Category not found', 'error')
     else:
-        Category.soft_delete(db, category_id)
-        flash('Category deleted successfully', 'success')
+        products = Product.get_by_category(db, category_id)
+        if products:
+            flash(f'Cannot delete category: {len(products)} active products are still using it.', 'error')
+        else:
+            Category.soft_delete(db, category_id)
+            flash('Category deleted successfully', 'success')
     
     return redirect(url_for('categories.list_categories'))

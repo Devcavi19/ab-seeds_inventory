@@ -84,7 +84,12 @@ class Stock:
     @staticmethod
     def get_all(db) -> list[dict]:
         """Get all stock entries"""
-        results = db.execute(f"SELECT * FROM {Stock.TABLE} ORDER BY updated_at DESC").fetchall()
+        results = db.execute(f"""
+            SELECT s.* FROM {Stock.TABLE} s
+            JOIN products p ON s.product_id = p.id
+            WHERE p.is_deleted = 0
+            ORDER BY s.updated_at DESC
+        """).fetchall()
         stocks = []
         if results:
             columns = [column[1] for column in db.execute(f"PRAGMA table_info({Stock.TABLE})").fetchall()]
@@ -122,7 +127,8 @@ class Stock:
         results = db.execute(
             f"""
             SELECT s.* FROM {Stock.TABLE} s
-            WHERE s.quantity < ?
+            JOIN products p ON s.product_id = p.id
+            WHERE s.quantity < ? AND p.is_deleted = 0
             ORDER BY s.quantity ASC
             """,
             [threshold]
