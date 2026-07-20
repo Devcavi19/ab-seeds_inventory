@@ -8,8 +8,7 @@ bp = Blueprint('sync', __name__, url_prefix='/sync', template_folder='templates'
 @bp.route('/status')
 @admin_required
 def sync_status():
-    status = current_app.sync_service.get_status()
-    return render_template('sync/index.html', status=status)
+    return jsonify(current_app.sync_service.get_status())
 
 @bp.route('/api/status')
 @admin_required

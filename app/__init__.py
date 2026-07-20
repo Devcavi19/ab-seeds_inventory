@@ -36,7 +36,32 @@ def create_app(test_config=None):
     else:
         # Dummy service for the master process which just watches files
         class DummySync:
-            conn = None
+            def __init__(self):
+                self.conn = None
+            
+            def is_available(self) -> bool:
+                return False
+            
+            def is_configured(self) -> bool:
+                return False
+            
+            def get_status(self) -> dict:
+                return {
+                    'available': False,
+                    'configured': False,
+                    'last_sync_at': None,
+                    'last_sync_status': None,
+                    'last_error': None,
+                }
+            
+            def sync_now(self) -> dict:
+                return {'status': 'unavailable', 'synced_at': None, 'error': None}
+            
+            def start(self):
+                pass
+            
+            def stop(self):
+                pass
         app.sync_service = DummySync()
 
     # Register blueprints
