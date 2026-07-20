@@ -33,14 +33,25 @@ class SyncService:
         self.conn = None
         
         if self.is_configured():
-            try:
-                self.conn = turso.sync.connect(
-                    self.database_path,
-                    remote_url=self.sync_url,
-                    auth_token=self.auth_token,
-                )
-            except Exception as e:
-                print(f"Failed to initialize global sync connection: {e}")
+            # Defer connection to avoid locking the database during app initialization
+            # or in the Werkzeug master process.
+            pass
+
+    def _ensure_connected(self):
+        if self.conn is not None:
+            return True
+        if not self.is_configured():
+            return False
+        try:
+            self.conn = turso.sync.connect(
+                self.database_path,
+                remote_url=self.sync_url,
+                auth_token=self.auth_token,
+            )
+            return True
+        except Exception as e:
+            print(f"Failed to initialize global sync connection: {e}")
+            return False
 
     def is_available(self) -> bool:
         return turso is not None
@@ -56,7 +67,7 @@ class SyncService:
                 synced_at = self._last_sync_at
             return {'status': 'unavailable', 'synced_at': synced_at, 'error': None}
 
-        if not self.is_configured() or not self.conn:
+        if not self._ensure_connected():
             with self._lock:
                 self._last_sync_status = 'not_configured'
                 self._last_error = None

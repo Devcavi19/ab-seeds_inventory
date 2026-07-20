@@ -14,56 +14,24 @@ def create_app(test_config=None):
     from . import extensions
     extensions.init_db(app)
 
-    import os, sys
-    is_desktop = 'run_desktop.py' in sys.argv[0] or 'flaskwebgui' in sys.modules
-    is_master_process = os.environ.get('WERKZEUG_RUN_MAIN') != 'true' and app.debug and not is_desktop
-    
-    if not is_master_process:
-        # Sync service: optional background sync of the local SQLite file against
-        # a Turso remote (embedded replica). No-op unless TURSO_DATABASE_URL /
-        # TURSO_AUTH_TOKEN are configured and libsql-experimental is installed.
-        from app.services.sync_service import SyncService
-        app.sync_service = SyncService(
-            database_path=app.config['DATABASE_PATH'],
-            sync_url=app.config.get('TURSO_DATABASE_URL'),
-            auth_token=app.config.get('TURSO_AUTH_TOKEN'),
-        )
+    # Sync service: optional background sync of the local SQLite file against
+    # a Turso remote (embedded replica). No-op unless TURSO_DATABASE_URL /
+    # TURSO_AUTH_TOKEN are configured and libsql-experimental is installed.
+    from app.services.sync_service import SyncService
+    app.sync_service = SyncService(
+        database_path=app.config['DATABASE_PATH'],
+        sync_url=app.config.get('TURSO_DATABASE_URL'),
+        auth_token=app.config.get('TURSO_AUTH_TOKEN'),
+    )
 
-        # Run migrations
-        extensions.init_migrations(app)
-        
-        # Start background sync
-        app.sync_service.start()
-    else:
-        # Dummy service for the master process which just watches files
-        class DummySync:
-            def __init__(self):
-                self.conn = None
-            
-            def is_available(self) -> bool:
-                return False
-            
-            def is_configured(self) -> bool:
-                return False
-            
-            def get_status(self) -> dict:
-                return {
-                    'available': False,
-                    'configured': False,
-                    'last_sync_at': None,
-                    'last_sync_status': None,
-                    'last_error': None,
-                }
-            
-            def sync_now(self) -> dict:
-                return {'status': 'unavailable', 'synced_at': None, 'error': None}
-            
-            def start(self):
-                pass
-            
-            def stop(self):
-                pass
-        app.sync_service = DummySync()
+    # Run migrations unconditionally
+    extensions.init_migrations(app)
+
+    @app.before_request
+    def start_background_services():
+        if not getattr(app, '_background_services_started', False):
+            app.sync_service.start()
+            app._background_services_started = True
 
     # Register blueprints
     from app.blueprints.auth import bp as auth_bp
