@@ -47,3 +47,15 @@ def test_categories_routes(client, db):
     # Verify category is no longer in the list
     categories = Category.get_all(db)
     assert len(categories) == 0
+
+
+def test_export_categories_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/categories/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=categories.csv' in response.headers['Content-Disposition']

@@ -3,6 +3,7 @@ from app.extensions import get_db
 from app.models.category import Category
 from app.models.product import Product
 from app.auth import admin_required
+from app.utils.csv_export import generate_csv_response
 
 bp = Blueprint('categories', __name__, url_prefix='/categories', template_folder='templates')
 
@@ -64,3 +65,23 @@ def delete_category(category_id):
             flash('Category deleted successfully', 'success')
     
     return redirect(url_for('categories.list_categories'))
+
+
+@bp.route('/export')
+@admin_required
+def export_csv():
+    db = get_db()
+    categories = db.execute(
+        'SELECT * FROM categories WHERE is_deleted = 0 ORDER BY name ASC'
+    ).fetchall()
+    
+    headers = ['ID', 'Name', 'Description']
+    rows = []
+    for c in categories:
+        rows.append({
+            'ID': c['id'],
+            'Name': c['name'],
+            'Description': c['description']
+        })
+    
+    return generate_csv_response('categories', headers, rows)

@@ -83,3 +83,14 @@ def test_products_routes(client, db):
     assert b'Tomato Seeds' in response.data
     assert b'Cucumber Seeds' in response.data
     assert b'Apple Seeds' not in response.data
+
+def test_export_products_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/products/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=products.csv' in response.headers['Content-Disposition']

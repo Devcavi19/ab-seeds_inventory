@@ -4,6 +4,7 @@ from app.models.product import Product
 from app.models.category import Category
 from app.auth import admin_required
 from werkzeug.utils import secure_filename
+from app.utils.csv_export import generate_csv_response
 import os
 
 bp = Blueprint('products', __name__, url_prefix='/products', template_folder='templates')
@@ -93,3 +94,30 @@ def delete_product(product_id):
         flash('Product deleted successfully', 'success')
     
     return redirect(url_for('products.list_products'))
+
+
+@bp.route('/export')
+@admin_required
+def export_csv():
+    db = get_db()
+    products = db.execute('''
+        SELECT p.id, p.name, p.description, p.price, p.stock_quantity, c.name as category_name
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.is_deleted = 0
+        ORDER BY p.name ASC
+    ''').fetchall()
+    
+    headers = ['ID', 'Name', 'Description', 'Price', 'Stock Quantity', 'Category']
+    rows = []
+    for p in products:
+        rows.append({
+            'ID': p['id'],
+            'Name': p['name'],
+            'Description': p['description'],
+            'Price': f"₱{p['price']:.2f}" if p['price'] else "",
+            'Stock Quantity': p['stock_quantity'],
+            'Category': p['category_name'] or 'Unknown'
+        })
+    
+    return generate_csv_response('products', headers, rows)
