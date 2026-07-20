@@ -1,24 +1,24 @@
 .agents
 .claude
+.superpowers/
 skills-lock.json
 
 plans/
-__pycache__/
-./tests/__pycache__/
-./app/__pycache__/
 
+# Python cache
+__pycache__/
+.pytest_cache/
+
+# Logs and environments
 flask.log
 .env
 env/
 
-# db files
-local.db-changes
-local.db-info
-local.db-wal
-local.db-wal-revert
-local.db-info.bak
-local.db-info.bak2
-local.db-shm
-
-# test folder
-tests/
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-*
+*.bak
+*.bak2
+*_zerodata
