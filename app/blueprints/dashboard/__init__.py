@@ -25,3 +25,4 @@ def index():
         top_products=top_products,
         low_stock_items=low_stock_items,
     )
+
