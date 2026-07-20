@@ -9,6 +9,7 @@ __pycache__/
 
 flask.log
 .env
+env/
 
 # db files
 local.db-changes
