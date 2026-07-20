@@ -17,6 +17,7 @@ local.db-wal
 local.db-wal-revert
 local.db-info.bak
 local.db-info.bak2
+local.db-shm
 
 # test folder
 tests/
