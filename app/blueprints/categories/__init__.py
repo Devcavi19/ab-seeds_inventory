@@ -72,7 +72,7 @@ def delete_category(category_id):
 def export_csv():
     db = get_db()
     categories = db.execute(
-        'SELECT * FROM categories WHERE is_deleted = 0 ORDER BY name ASC'
+        'SELECT * FROM categories WHERE is_deleted = FALSE ORDER BY name ASC'
     ).fetchall()
     
     headers = ['ID', 'Name', 'Description']

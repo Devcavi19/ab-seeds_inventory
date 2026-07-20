@@ -7,6 +7,7 @@
     <div class="card-header">
         Customer Management
         <a href="{{ url_for('customers.create_customer') }}" class="btn btn-primary btn-sm">+ Create Customer</a>
+        <a href="{{ url_for('customers.export_csv') }}" class="btn btn-secondary btn-sm ml-2">Export CSV</a>
     </div>
     
     <table class="table">

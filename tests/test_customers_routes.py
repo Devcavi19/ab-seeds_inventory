@@ -61,3 +61,14 @@ def test_customers_routes(client, db):
     # Verify customer is soft deleted
     deleted_customer = Customer.get_by_id(db, customer_id)
     assert deleted_customer['is_active'] == False
+
+def test_export_customers_csv(client, auth, db):
+    # Create a test admin user
+    from app.models.user import User
+    User.create(db, "admin", "password123", "Admin User", "admin")
+    
+    auth.login()
+    response = client.get('/customers/export')
+    assert response.status_code == 200
+    assert response.mimetype == 'text/csv'
+    assert 'attachment; filename=customers.csv' in response.headers['Content-Disposition']

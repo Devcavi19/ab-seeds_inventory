@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.extensions import get_db
 from app.models.supplier import Supplier
 from app.auth import admin_required
+from app.utils.csv_export import generate_csv_response
 
 bp = Blueprint('suppliers', __name__, url_prefix='/suppliers', template_folder='templates')
 
@@ -67,3 +68,27 @@ def delete_supplier(supplier_id):
         flash('Supplier deleted successfully', 'success')
     
     return redirect(url_for('suppliers.list_suppliers'))
+
+
+@bp.route('/export')
+@admin_required
+def export_csv():
+    db = get_db()
+    suppliers = db.execute(
+        'SELECT * FROM suppliers WHERE is_active = TRUE ORDER BY name ASC'
+    ).fetchall()
+    
+    headers = ['ID', 'Name', 'Contact Person', 'Phone', 'Email', 'Address', 'Notes']
+    rows = []
+    for s in suppliers:
+        rows.append({
+            'ID': s['id'],
+            'Name': s['name'],
+            'Contact Person': s['contact_person'],
+            'Phone': s['phone'],
+            'Email': s['email'],
+            'Address': s['address'],
+            'Notes': s['notes'] or ''
+        })
+    
+    return generate_csv_response('suppliers', headers, rows)

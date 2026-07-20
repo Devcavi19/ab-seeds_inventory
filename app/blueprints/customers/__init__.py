@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.extensions import get_db
 from app.models.customer import Customer
 from app.auth import admin_required
+from app.utils.csv_export import generate_csv_response
 
 bp = Blueprint('customers', __name__, url_prefix='/customers', template_folder='templates')
 
@@ -63,3 +64,25 @@ def delete_customer(customer_id):
         flash('Customer deleted successfully', 'success')
     
     return redirect(url_for('customers.list_customers'))
+
+
+@bp.route('/export')
+@admin_required
+def export_csv():
+    db = get_db()
+    customers = db.execute(
+        'SELECT * FROM customers WHERE is_active = TRUE ORDER BY name ASC'
+    ).fetchall()
+    
+    headers = ['ID', 'Name', 'Email', 'Phone', 'Address']
+    rows = []
+    for c in customers:
+        rows.append({
+            'ID': c['id'],
+            'Name': c['name'],
+            'Email': c['email'],
+            'Phone': c['phone'],
+            'Address': c['address']
+        })
+    
+    return generate_csv_response('customers', headers, rows)

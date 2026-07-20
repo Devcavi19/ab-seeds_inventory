@@ -104,7 +104,7 @@ def export_csv():
         SELECT p.id, p.name, p.description, p.price, p.stock_quantity, c.name as category_name
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
-        WHERE p.is_deleted = 0
+        WHERE p.is_deleted = FALSE
         ORDER BY p.name ASC
     ''').fetchall()
     
