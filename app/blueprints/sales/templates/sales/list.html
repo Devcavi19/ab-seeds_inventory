@@ -6,8 +6,10 @@
 <div class="card">
     <div class="card-header">
         Sales
-        <a href="{{ url_for('sales.create_sale') }}" class="btn btn-primary btn-sm">+ Create Sale</a>
-        <a href="{{ url_for('sales.export_csv') }}" class="btn btn-secondary btn-sm ml-2">Export CSV</a>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <a href="{{ url_for('sales.create_sale') }}" class="btn btn-primary btn-sm">+ Create Sale</a>
+            <a href="{{ url_for('sales.export_csv') }}" class="btn btn-secondary btn-sm">Export CSV</a>
+        </div>
     </div>
 
     <table class="table">

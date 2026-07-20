@@ -6,8 +6,10 @@
 <div class="card">
     <div class="card-header">
         Product Management
-        <a href="{{ url_for('products.create_product') }}" class="btn btn-primary btn-sm">+ Create Product</a>
-        <a href="{{ url_for('products.export_csv') }}" class="btn btn-secondary btn-sm ml-2">Export CSV</a>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <a href="{{ url_for('products.create_product') }}" class="btn btn-primary btn-sm">+ Create Product</a>
+            <a href="{{ url_for('products.export_csv') }}" class="btn btn-secondary btn-sm">Export CSV</a>
+        </div>
     </div>
     
     <div class="card-body">
