@@ -13,7 +13,7 @@
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <p><strong>Supplier:</strong> {{ order.supplier_id }}</p>
+                    <p><strong>Supplier:</strong> {{ order.supplier_name }}</p>
                     <p><strong>Status:</strong> <span class="badge bg-{{ 'primary' if order.status == 'pending' else 'success' if order.status == 'completed' else 'info' }}">{{ order.status }}</span></p>
                 </div>
                 <div class="col-md-6">
@@ -70,7 +70,7 @@
                     <tbody>
                         {% for item in items %}
                         <tr>
-                            <td>{{ item.product_id }}</td>
+                            <td>{{ item.product_name }}</td>
                             <td>{{ item.quantity }}</td>
                             <td>₱{{ "%.2f"|format(item.unit_cost) }}</td>
                             <td>₱{{ "%.2f"|format(item.quantity * item.unit_cost) }}</td>

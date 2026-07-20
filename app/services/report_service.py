@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 
-from app.models.stock import Stock
+
 
 
 def get_summary_counts(db) -> dict:
@@ -131,6 +131,25 @@ def get_top_selling_products(db, limit: int = 5) -> list[dict]:
 
 
 def get_low_stock_items(db, threshold: int = 20) -> list[dict]:
-    """Delegates to Stock.get_low_stock - kept here so dashboard/reports have
-    one place to import all aggregation calls from."""
-    return Stock.get_low_stock(db, threshold)
+    """Low stock items joined with their product name for display."""
+    results = db.execute(
+        """
+        SELECT s.*, p.name AS product_name
+        FROM stock s
+        LEFT JOIN products p ON s.product_id = p.id
+        WHERE s.quantity < ?
+        ORDER BY s.quantity ASC
+        """,
+        [threshold]
+    ).fetchall()
+
+    if not results:
+        return []
+
+    # Build column list: stock columns + product_name alias
+    stock_columns = [col[1] for col in db.execute("PRAGMA table_info(stock)").fetchall()]
+    items = []
+    for row in results:
+        row_dict = dict(zip(stock_columns + ['product_name'], row))
+        items.append(row_dict)
+    return items

@@ -196,7 +196,15 @@ def view_sale(sale_id):
         flash('Sale not found', 'error')
         return redirect(url_for('sales.list_sales'))
 
-    return render_template('sales/view.html', sale=sale, items=items)
+    # Enrich each line item with its product name
+    enriched_items = []
+    for item in items:
+        product = Product.get_by_id(db, item['product_id'])
+        item = dict(item)
+        item['product_name'] = product['name'] if product else item['product_id']
+        enriched_items.append(item)
+
+    return render_template('sales/view.html', sale=sale, items=enriched_items)
 
 @bp.route('/<sale_id>/update-status', methods=['POST'])
 @admin_required

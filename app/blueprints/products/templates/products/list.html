@@ -6,7 +6,7 @@
 <div class="card">
     <div class="card-header">
         Product Management
-        <a href="{{ url_for('products.create_product') }}" class="btn btn-primary" style="float: right;">Create Product</a>
+        <a href="{{ url_for('products.create_product') }}" class="btn btn-primary btn-sm">+ Create Product</a>
     </div>
     
     <div class="card-body">
@@ -24,10 +24,10 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button type="submit" class="btn btn-secondary">Filter</button>
+                    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
                 </div>
                 <div class="col-md-2">
-                    <a href="{{ url_for('products.list_products') }}" class="btn btn-outline-secondary">Reset</a>
+                    <a href="{{ url_for('products.list_products') }}" class="btn btn-secondary btn-sm">Reset</a>
                 </div>
             </div>
         </form>

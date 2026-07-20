@@ -113,8 +113,8 @@
             <li class="attn-item">
                 <span class="attn-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V11"/><path d="M12 11C12 7.5 9.5 5 5 5c0 4.5 2.5 7 7 7Z"/></svg></span>
                 <div class="attn-body">
-                    <div class="attn-title">{{ item.location or 'Unassigned bin' }}</div>
-                    <div class="attn-sub">Lot {{ item.lot_number or '—' }}{% if item.expiry_date %} · exp {{ item.expiry_date }}{% endif %}</div>
+                    <div class="attn-title">{{ item.product_name or 'Unknown product' }}</div>
+                    <div class="attn-sub">{{ item.location or 'Unassigned bin' }}{% if item.lot_number %} · Lot {{ item.lot_number }}{% endif %}{% if item.expiry_date %} · exp {{ item.expiry_date }}{% endif %}</div>
                 </div>
                 <span class="attn-qty">{{ item.quantity }} left</span>
             </li>

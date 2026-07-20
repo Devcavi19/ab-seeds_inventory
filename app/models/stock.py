@@ -42,7 +42,14 @@ class Stock:
     
     @staticmethod
     def get_by_product_id(db, product_id: str) -> dict | None:
-        """Get stock by product ID"""
+        """Get stock by product ID.
+
+        If no stock record exists yet but the product has a stock_quantity
+        column (set by the simplified product schema), a stock record is
+        auto-created from that value so that sales validation never sees a
+        false-zero for products that were added without going through the
+        stock management flow.
+        """
         result = db.execute(
             f"SELECT * FROM {Stock.TABLE} WHERE product_id = ?", 
             [product_id]
@@ -52,6 +59,26 @@ class Stock:
             # Convert tuple to dict with column names
             columns = [column[1] for column in db.execute(f"PRAGMA table_info({Stock.TABLE})").fetchall()]
             return dict(zip(columns, result))
+
+        # --- Safety-net: auto-seed from products.stock_quantity ---
+        # This covers products created before migration 004, or any product
+        # that was inserted without an explicit stock record.
+        product_row = db.execute(
+            "SELECT stock_quantity FROM products WHERE id = ? AND is_deleted = 0",
+            [product_id]
+        ).fetchone()
+        if product_row is not None:
+            quantity = product_row[0] if product_row[0] is not None else 0
+            Stock.upsert(db, product_id, quantity, '', '', '')
+            # Re-fetch the newly created record
+            result = db.execute(
+                f"SELECT * FROM {Stock.TABLE} WHERE product_id = ?",
+                [product_id]
+            ).fetchone()
+            if result:
+                columns = [column[1] for column in db.execute(f"PRAGMA table_info({Stock.TABLE})").fetchall()]
+                return dict(zip(columns, result))
+
         return None
     
     @staticmethod

@@ -64,6 +64,18 @@ class SyncService:
             return {'status': 'not_configured', 'synced_at': synced_at, 'error': None}
 
         try:
+            # Checkpoint the WAL first so that any local writes that were
+            # committed outside the Turso connection (e.g. via a raw
+            # sqlite3.connect()) are flushed into the main DB file before
+            # the sync engine tries to push them.  Without this, the push
+            # can fail with "unable to checkpoint synced portion of WAL".
+            try:
+                self.conn.checkpoint()
+            except Exception as ckpt_exc:
+                # Log but don't abort — push/pull may still succeed if the
+                # WAL is in a consistent state from Turso's perspective.
+                print(f"[sync] WAL checkpoint warning (non-fatal): {ckpt_exc}")
+
             self.conn.push()
             self.conn.pull()
         except Exception as exc:

@@ -544,6 +544,14 @@ a { color: var(--pine-700); }
 .btn-danger { background: var(--out); color: #fff; }
 .btn-danger:hover { background: #9c3b28; }
 
+/* Table action cell — flex with gap so buttons don't crowd each other */
+.table td:last-child {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
 /* ---------- Forms ---------- */
 .form-group { margin-bottom: 16px; }
 .form-group label {

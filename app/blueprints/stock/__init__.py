@@ -11,7 +11,14 @@ bp = Blueprint('stock', __name__, url_prefix='/stock', template_folder='template
 def list_stock():
     db = get_db()
     stocks = Stock.get_all(db)
-    return render_template('stock/list.html', stocks=stocks)
+    # Enrich each stock entry with its product name
+    enriched = []
+    for stock in stocks:
+        product = Product.get_by_id(db, stock['product_id'])
+        stock = dict(stock)
+        stock['product_name'] = product['name'] if product else stock['product_id']
+        enriched.append(stock)
+    return render_template('stock/list.html', stocks=enriched)
 
 @bp.route('/<product_id>/create', methods=['GET', 'POST'])
 @admin_required
@@ -84,4 +91,10 @@ def adjust_stock(product_id):
 def low_stock():
     db = get_db()
     low_stocks = Stock.get_low_stock(db, 20)  # Threshold of 20
-    return render_template('stock/low.html', stocks=low_stocks)
+    enriched = []
+    for stock in low_stocks:
+        product = Product.get_by_id(db, stock['product_id'])
+        stock = dict(stock)
+        stock['product_name'] = product['name'] if product else stock['product_id']
+        enriched.append(stock)
+    return render_template('stock/low.html', stocks=enriched)

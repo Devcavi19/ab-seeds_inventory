@@ -13,7 +13,13 @@ bp = Blueprint('purchases', __name__, url_prefix='/purchases', template_folder='
 def list_purchase_orders():
     db = get_db()
     orders = PurchaseOrder.get_all(db)
-    return render_template('purchases/list.html', orders=orders)
+    enriched = []
+    for order in orders:
+        supplier = Supplier.get_by_id(db, order['supplier_id'])
+        order = dict(order)
+        order['supplier_name'] = supplier['name'] if supplier else order['supplier_id']
+        enriched.append(order)
+    return render_template('purchases/list.html', orders=enriched)
 
 @bp.route('/create', methods=['GET', 'POST'])
 @admin_required
@@ -120,7 +126,20 @@ def view_purchase_order(order_id):
         flash('Purchase order not found', 'error')
         return redirect(url_for('purchases.list_purchase_orders'))
     
-    return render_template('purchases/view.html', order=order, items=items)
+    # Resolve supplier UUID to a human-readable name
+    supplier = Supplier.get_by_id(db, order['supplier_id'])
+    order = dict(order)
+    order['supplier_name'] = supplier['name'] if supplier else order['supplier_id']
+
+    # Enrich each line item with its product name
+    enriched_items = []
+    for item in items:
+        product = Product.get_by_id(db, item['product_id'])
+        item = dict(item)
+        item['product_name'] = product['name'] if product else item['product_id']
+        enriched_items.append(item)
+
+    return render_template('purchases/view.html', order=order, items=enriched_items)
 
 @bp.route('/<order_id>/update-status', methods=['POST'])
 @admin_required
